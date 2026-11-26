@@ -21,7 +21,7 @@ Use **um ou outro** para coletar: os dois juntos geram alertas em dobro.
    Isso cria a variável `DATABASE_URL` no projeto.
 3. Vercel → *Settings* → *Environment Variables*:
    - `PAINEL_SENHA`: senha para alterar preços-alvo pelo painel (sem ela, qualquer um com o link altera).
-   - Opcional, para o botão "Coletar agora": `GITHUB_REPO` (`usuario/radarPrecos`) e `GITHUB_TOKEN`
+   - Opcional, para o botão "Coletar agora": `GITHUB_REPO` (`KaiserX10/radar_de_precos`) e `GITHUB_TOKEN`
      (token *fine-grained* com permissão **Actions: Read and write** só neste repositório).
    Depois, *Redeploy*.
 4. **GitHub** → repositório → *Settings* → *Secrets and variables* → *Actions* → *New repository secret*:

@@ -17,7 +17,7 @@ app = FastAPI(title="Radar de Preços")
 SENHA = os.environ.get("PAINEL_SENHA")
 # Na Vercel, "Coletar agora" dispara o workflow do GitHub Actions
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
-GITHUB_REPO = os.environ.get("GITHUB_REPO")  # ex.: usuario/radarPrecos
+GITHUB_REPO = os.environ.get("GITHUB_REPO")  # ex.: KaiserX10/radar_de_precos
 NA_VERCEL = bool(os.environ.get("VERCEL"))
 
 
