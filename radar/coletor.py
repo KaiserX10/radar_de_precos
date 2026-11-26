@@ -22,8 +22,9 @@ def coletar_uma_vez():
             continue
         intervalo = (cfg.get("intervalo_minutos_por_loja") or {}).get(nome_loja)
         if intervalo:
-            ultima = con.execute("SELECT MAX(ts) FROM coletas WHERE loja=?", (nome_loja,)).fetchone()[0]
-            if ultima and (datetime.fromisoformat(ts) - datetime.fromisoformat(ultima)).total_seconds() < intervalo * 60 - 30:
+            ultima = db.ultima_tentativa(con, nome_loja)
+            # folga de 2 min: o agendador do GitHub atrasa um pouco às vezes
+            if ultima and (datetime.fromisoformat(ts) - datetime.fromisoformat(ultima)).total_seconds() < (intervalo - 2) * 60:
                 continue
         brutas, erro = {}, None
         try:
@@ -64,15 +65,14 @@ def coletar_uma_vez():
             suspeitas += o["suspeito"]
         if lst:
             db.salvar_ofertas(con, ts, lst)
-        con.execute("INSERT OR REPLACE INTO coletas (ts, loja, ofertas, erro) VALUES (?,?,?,?)",
-                    (ts, nome_loja, len(lst), erro))
-        con.commit()
+        db.registrar_coleta(con, ts, nome_loja, len(lst), erro)
         print(f"[{ts}] {nome_loja}: {len(lst)} ofertas ({suspeitas} suspeitas)" + (f" | ERRO {erro}" if erro else ""))
 
+    alvos = db.alvos(con, familias)
     for f in familias:
         validas = [o for o in db.ofertas_atuais(con, f["id"]) if not o["suspeito"] and o["ts"] == ts]
         if validas:
-            alertas.avaliar(cfg, con, f, validas[0], minimos_antes[f["id"]])
+            alertas.avaliar(cfg, con, f, alvos[f["id"]], validas[0], minimos_antes[f["id"]])
     con.close()
 
 

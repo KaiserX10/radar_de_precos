@@ -108,7 +108,19 @@ const grafico = echarts.init(document.getElementById('grafico'), 'dark');
 const disp = echarts.init(document.getElementById('dispersao'), 'dark');
 addEventListener('resize',()=>{grafico.resize();disp.resize()});
 
-async function api(u,opt){const r=await fetch(u,opt);if(!r.ok)throw new Error(await r.text());return r.json()}
+function lerSenha(){try{return localStorage.getItem('radarSenha')||''}catch(e){return window._senha||''}}
+function guardarSenha(s){window._senha=s;try{localStorage.setItem('radarSenha',s)}catch(e){}}
+async function api(u,opt={},tentou){
+  const headers={...(opt.headers||{})};
+  if(opt.method&&opt.method!=='GET'){const s=lerSenha(); if(s) headers['X-Senha']=s;}
+  const r=await fetch(u,{...opt,headers});
+  if(r.status===401&&!tentou){
+    const s=prompt('Senha do painel (necessária para alterar):');
+    if(s){guardarSenha(s);return api(u,opt,true)}
+  }
+  if(!r.ok){let m=await r.text();try{m=JSON.parse(m).detail||m}catch(e){}throw new Error(m)}
+  return r.json();
+}
 
 function selo(f){
   const p=f.melhor?.preco_vista, m=f.minimos;
@@ -259,8 +271,10 @@ function dispersao(){
 
 async function status(){
   const s=await api('/api/status');
+  btnColetar.style.display=s.pode_coletar?'':'none';
+  const hora=t=>new Date(t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('status').innerHTML = s.ultima
-    ? `Última coleta: ${new Date(s.ultima).toLocaleString('pt-BR')} · ${s.coletas.map(x=>`${LOJA[x.loja]||x.loja}: ${x.erro?`<span class="up" title="${x.erro.replace(/"/g,'')}">erro</span>`:x.ofertas+' ofertas'}`).join(' · ')} · a cada ${s.intervalo_minutos} min${s.coletando?' · <b>coletando…</b>':''}`
+    ? `Última coleta: ${new Date(s.ultima).toLocaleString('pt-BR')} · ${s.por_loja.map(x=>`${LOJA[x.loja]||x.loja} (${hora(x.ts)}): ${x.erro?`<span class="up" title="${x.erro.replace(/"/g,'')}">erro</span>`:x.ofertas+' ofertas'}`).join(' · ')} · a cada ~${s.intervalo_minutos} min${s.nuvem?' (GitHub Actions)':''}${s.coletando?' · <b>coletando…</b>':''}`
     : 'Nenhuma coleta ainda — clique em "Coletar agora".';
 }
 
@@ -278,7 +292,10 @@ async function carregar(primeira){
   cards(); desenharGrafico(); ofertas(); comparar(); dispersao(); status();
 }
 
-btnColetar.onclick=async()=>{btnColetar.disabled=true;btnColetar.textContent='Coletando…';await api('/api/coletar',{method:'POST'});
+btnColetar.onclick=async()=>{
+  btnColetar.disabled=true;btnColetar.textContent='Coletando…';
+  let r; try{r=await api('/api/coletar',{method:'POST'})}catch(e){alert(e.message);btnColetar.disabled=false;btnColetar.textContent='Coletar agora';return}
+  if(r.msg&&r.ok){btnColetar.textContent='Disparada ✔';setTimeout(()=>{btnColetar.disabled=false;btnColetar.textContent='Coletar agora'},60000);return}
   const t=setInterval(async()=>{const s=await api('/api/status');if(!s.coletando){clearInterval(t);btnColetar.disabled=false;btnColetar.textContent='Coletar agora';carregar()}},3000)};
 selOfertas.onchange=ofertas; cmpA.onchange=comparar; cmpB.onchange=comparar;
 botoesJanela(); carregar(true);
