@@ -11,6 +11,7 @@ EXCLUIR_GERAL = [
     r"^ventilador", r"^ventoinha", r"^novo ventilador", r"dissipador", r"bracket", r"^substitui",
     r"segunda mao", r"refurbish", r"minera", r"\b99\s*new\b", r"seminov", r"\bused\b",
     r"\bopen\s*box\b", r"de vitrine", r"mostruario",
+    r"^para\b",  # "para placa de video ..." = accessory compatible with several models
 ]
 
 MEMORIA = re.compile(r"(?<!\d)(\d{1,2})\s*g(?:b|ddr|\b)")

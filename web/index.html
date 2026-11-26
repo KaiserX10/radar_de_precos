@@ -2,137 +2,452 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#efefee">
 <title>Radar de Preços</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
 <style>
 :root{
-  --bg:#0f1115;--card:#171a21;--card2:#1e222b;--bd:#2a2f3a;--tx:#e7e9ee;--mut:#9aa3b2;
-  --ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--acc:#3b82f6;
+  color-scheme:light;
+  --bg1:#f4f4f3;--bg2:#e2e2e0;
+  --glass:rgba(255,255,255,.58);--glass-strong:rgba(255,255,255,.86);--glass-line:rgba(255,255,255,.9);
+  --line:rgba(17,17,17,.07);--soft:#f2f2f1;--soft2:#e9e9e8;
+  --ink:#111111;--ink2:#2a2a2a;--mut:#8a8a8a;--mut2:#b4b4b4;
+  --ok:#1d8f4e;--ok-bg:#e3f3e9;--bad:#c93b3b;--bad-bg:#f8e5e5;--warn:#a26a00;--warn-bg:#f6edda;
+  --r-xl:30px;--r-l:22px;--r-m:16px;--r-s:12px;
+  --shadow:0 18px 40px -18px rgba(0,0,0,.14),0 2px 6px rgba(0,0,0,.03);
+  --gutter:clamp(12px,2.2vw,24px);
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,Segoe UI,Roboto,sans-serif}
-header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--bg);z-index:5}
-h1{font-size:18px;margin:0}
-h2{font-size:15px;margin:0 0 12px}
-main{padding:16px 20px;max-width:1400px;margin:auto}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;min-height:100vh;color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:radial-gradient(1200px 600px at 15% -10%,#ffffff 0%,transparent 60%),
+             radial-gradient(900px 500px at 110% 110%,#d9d9d7 0%,transparent 55%),
+             linear-gradient(160deg,var(--bg1),var(--bg2));
+  background-attachment:fixed;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .mut{color:var(--mut)}
-button,select,input{background:var(--card2);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit}
-button{cursor:pointer}button:hover{border-color:var(--acc)}
-button.on{background:var(--acc);border-color:var(--acc)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
-.fam{cursor:pointer}.fam.sel{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
-.fam .preco{font-size:24px;font-weight:700;margin:4px 0}
-.fam .loja{font-size:12px}
-.chips{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-top:8px}
-tr.susp td{opacity:.55}
-.alvo{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;flex-wrap:wrap}
-.alvo label{color:var(--mut)}
-.alvo input{width:110px;padding:4px 8px;font-size:13px}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- shell ---------- */
+.shell{max-width:1440px;margin:clamp(0px,2vw,28px) auto;padding:var(--gutter);display:grid;grid-template-columns:212px minmax(0,1fr);gap:var(--gutter);
+  background:var(--glass);border:1px solid var(--glass-line);border-radius:var(--r-xl);box-shadow:var(--shadow);
+  backdrop-filter:blur(22px) saturate(1.2);-webkit-backdrop-filter:blur(22px) saturate(1.2)}
+.glass{background:var(--glass-strong);border:1px solid var(--glass-line);border-radius:var(--r-l);box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.dark{background:#0e0e0e;color:#f4f4f4;border-radius:var(--r-l);box-shadow:0 20px 40px -20px rgba(0,0,0,.5)}
+.dark .mut{color:#8d8d8d}
+
+/* ---------- sidebar ---------- */
+.side{position:sticky;top:var(--gutter);align-self:start;display:flex;flex-direction:column;gap:var(--gutter);height:calc(100vh - 2*var(--gutter) - 56px)}
+.nav{padding:14px 10px;display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 10px 14px;font-weight:600;letter-spacing:-.01em}
+.brand .dot{width:28px;height:28px;border-radius:50%;background:var(--ink);display:grid;place-items:center;color:#fff}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:999px;text-decoration:none;color:var(--ink2);font-weight:500;transition:background .15s}
+.nav a:hover{background:var(--soft)}
+.nav a.on{background:var(--ink);color:#fff}
+.nav svg,.tabbar svg,.icon-btn svg,.pill svg{width:18px;height:18px;flex:none}
+.statusCard{margin-top:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.statusCard .hora{font-size:26px;font-weight:600;letter-spacing:-.02em}
+.lojaLinha{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.lojaLinha span:first-child{display:flex;align-items:center;gap:8px}
+.bolinha{width:8px;height:8px;border-radius:50%;background:var(--ink)}
+.bolinha.erro{background:var(--bad)}.bolinha.vazio{background:var(--mut2)}
+
+/* ---------- header ---------- */
+.main{min-width:0;display:flex;flex-direction:column;gap:var(--gutter)}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+h1{font-size:clamp(34px,4.4vw,56px);line-height:.98;letter-spacing:-.045em;font-weight:600;margin:0}
+.sub{margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 6px;border-radius:999px;background:var(--glass-strong);border:1px solid var(--glass-line);font-size:12.5px;font-weight:500;white-space:nowrap}
+.pill .ic{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center}
+.pill .ic.claro{background:var(--soft);color:var(--ink)}
+.busca{padding-right:6px}
+.busca input{border:0;background:transparent;outline:none;width:150px;font-size:16px;height:100%}
+.busca input::placeholder{color:var(--mut)}
+.icon-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--glass-line);background:var(--glass-strong);display:grid;place-items:center}
+.icon-btn.preto{background:var(--ink);color:#fff;border-color:var(--ink)}
+.icon-btn:disabled{opacity:.5;cursor:wait}
+.icon-btn.girando svg{animation:gira 1s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+
+/* segmented control (Jour / Semaine / Mois) */
+.seg{display:inline-flex;gap:2px;padding:4px;border-radius:999px;background:var(--soft)}
+.seg button{border:0;background:transparent;padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:500;color:var(--mut);min-height:34px}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* ---------- KPIs ---------- */
+.kpis{display:grid;grid-template-columns:1.05fr 1.2fr 1fr;gap:var(--gutter)}
+.kpi{padding:20px;min-width:0}
+.kpi h3,.sec h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.big{font-size:44px;font-weight:600;letter-spacing:-.04em;line-height:1;margin:16px 0 4px}
+.big small{font-size:18px;letter-spacing:-.01em;font-weight:500}
+.lista{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;font-size:13px}
+.lista li{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.lista li span:first-child{display:flex;align-items:center;gap:8px;min-width:0}
+.lista .nome{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.destaque{display:flex;flex-direction:column;gap:14px;padding:20px;position:relative;overflow:hidden}
+.destaque::after{content:"";position:absolute;right:-70px;top:-70px;width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#5a5a5a,#1a1a1a 60%);opacity:.55}
+.destaque > *{position:relative;z-index:1}
+.destaque .nomeGpu{font-size:30px;font-weight:600;letter-spacing:-.03em;line-height:1.05}
+.destaque .linhaDados{display:flex;gap:18px;flex-wrap:wrap}
+.destaque .linhaDados b{display:block;font-size:18px;font-weight:600}
+.btn-claro{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;height:40px;padding:0 16px 0 6px;border-radius:999px;background:#fff;color:var(--ink);text-decoration:none;font-weight:500;font-size:13px}
+.btn-claro .ic{width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center}
+.btn-claro .ic svg{width:14px;height:14px}
+
+/* ---------- sections ---------- */
+.sec{padding:20px;min-width:0}
+.secHead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.secHead p{margin:4px 0 0;font-size:12.5px}
+
+/* ---------- GPU cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:14px}
+.gpu{background:#fff;border:1px solid var(--line);border-radius:var(--r-l);padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;transition:box-shadow .15s,border-color .15s}
+.gpu:hover{box-shadow:0 10px 24px -14px rgba(0,0,0,.18)}
+.gpu.noGrafico{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.gpu.atingido{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
+.gpuTop{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gpuTop b{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.tag{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;background:var(--soft);font-size:11.5px;font-weight:500;color:var(--ink2);white-space:nowrap}
+.tag svg{width:13px;height:13px;flex:none}
+.tag.bom{background:var(--ink);color:#fff}.tag.ruim{background:var(--bad-bg);color:var(--bad)}.tag.aviso{background:var(--warn-bg);color:var(--warn)}
+.preco{font-size:30px;font-weight:600;letter-spacing:-.035em;line-height:1}
+.oferta{font-size:12px;color:var(--mut);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.9em}
+.oferta a{color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--soft2)}
+.oferta a:hover{border-color:var(--ink)}
+.lojas{display:flex;gap:6px;flex-wrap:wrap;font-size:12px}
+.lojas span{background:var(--soft);border-radius:8px;padding:3px 8px}
+.alvo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--soft);border-radius:var(--r-s);padding:6px 6px 6px 10px}
+.alvo label{font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px}
+.alvo label svg{width:14px;height:14px}
+.alvo input{flex:1;min-width:0;max-width:130px;height:34px;border:1px solid transparent;border-radius:10px;background:#fff;padding:0 10px;font-size:16px}
 .alvo input.salvo{border-color:var(--ok)}.alvo input.erro{border-color:var(--bad)}
-.alvoInfo{font-size:11px}
-.fam.atingido{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
-.chip{background:var(--card2);border-radius:6px;padding:4px 6px;font-size:11px}
-.chip b{display:block;font-size:12px}
-.up{color:var(--bad)}.down{color:var(--ok)}.eq{color:var(--warn)}
-.selo{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;margin-top:6px}
-.selo.bom{background:#14532d;color:#bbf7d0}.selo.ruim{background:#450a0a;color:#fecaca}.selo.neutro{background:#3f3f46;color:#e4e4e7}
-section{margin-top:20px}
-.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
-#grafico,#dispersao{height:380px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);vertical-align:top}
-th{color:var(--mut);font-weight:500}
-td.num{text-align:right;white-space:nowrap}
-a{color:#93c5fd}
-.vence{color:var(--ok);font-weight:600}
-.duas{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:900px){.duas{grid-template-columns:1fr}}
-.tabwrap{overflow-x:auto}
-.aviso{font-size:12px;color:var(--mut);margin-top:8px}
+.alvoInfo{font-size:11.5px;width:100%;padding-right:4px}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.chip{border:1px solid var(--line);border-radius:var(--r-s);padding:7px 9px;font-size:11px;line-height:1.3}
+.chip b{display:block;font-size:13px;font-weight:600}
+.up{color:var(--bad)}.down{color:var(--ok)}.eq{color:var(--mut)}
+.gpuAcoes{display:flex;gap:6px}
+.gpuAcoes button{flex:1;height:38px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.gpuAcoes button svg{width:15px;height:15px}
+.gpuAcoes button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.rodapeCard{font-size:11px;color:var(--mut)}
+.vazio{padding:28px;text-align:center;color:var(--mut);border:1px dashed var(--mut2);border-radius:var(--r-l)}
+
+/* ---------- chart ---------- */
+#grafico{height:360px}
+#dispersao{height:300px}
+
+/* ---------- offers ---------- */
+.ofertas{display:flex;flex-direction:column}
+.of{display:grid;grid-template-columns:110px minmax(0,1fr) 160px 120px 110px;gap:14px;align-items:center;padding:12px 4px;border-top:1px solid var(--line)}
+.of.cab{border-top:0;font-size:11.5px;color:var(--mut);padding-top:0}
+.of .tit{min-width:0}
+.of .tit a{text-decoration:none;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.of .tit a:hover{text-decoration:underline}
+.of .r{text-align:right}
+.of.susp{opacity:.55}
+select.pillSel{height:40px;border-radius:999px;border:1px solid var(--glass-line);background:#fff;padding:0 34px 0 14px;font-size:14px;font-weight:500;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;max-width:100%}
+.dark select.pillSel{background-color:#1d1d1d;color:#f4f4f4;border-color:#2c2c2c;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")}
+
+/* ---------- compare ---------- */
+.duas{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:var(--gutter)}
+.cmpSel{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cmp{display:flex;flex-direction:column;margin-top:6px}
+.cmpLinha{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:12px;padding:10px 0;border-top:1px solid #242424;font-size:13px}
+.cmpLinha.cab{border-top:0;font-size:12px;color:#8d8d8d}
+.cmpLinha .v.vence{color:#fff;font-weight:600}
+.cmpLinha .v.vence::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#fff;margin-right:7px;vertical-align:1px}
+.cmpLinha .v{color:#bdbdbd}
+.resumoCmp{margin-top:14px;padding:14px;border-radius:var(--r-m);background:#1b1b1b;font-size:13px;line-height:1.5}
+.rank{display:flex;flex-direction:column;margin-top:8px}
+.rankLinha{display:grid;grid-template-columns:28px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:13px}
+.rankLinha .pos{width:24px;height:24px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:11px;font-weight:600}
+.rankLinha:first-child .pos{background:var(--ink);color:#fff}
+.notas{font-size:11.5px;color:var(--mut);line-height:1.5;padding:0 4px}
+
+/* ---------- feedback ---------- */
+.banner{display:none;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--r-m);background:var(--bad-bg);color:var(--bad);font-size:13px}
+.banner.on{display:flex}
+.banner button{margin-left:auto;border:0;background:var(--bad);color:#fff;border-radius:999px;height:32px;padding:0 14px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  background:var(--ink);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;transition:.25s;z-index:60;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.esqueleto{background:linear-gradient(90deg,var(--soft) 0%,#fafafa 50%,var(--soft) 100%);background-size:200% 100%;animation:brilho 1.2s infinite;border-radius:var(--r-l);height:300px}
+@keyframes brilho{to{background-position:-200% 0}}
+dialog{border:0;border-radius:var(--r-l);padding:22px;width:min(360px,calc(100vw - 32px));box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(20,20,20,.35);backdrop-filter:blur(4px)}
+dialog h3{margin:0 0 6px;font-size:17px}
+dialog input{width:100%;height:46px;border-radius:12px;border:1px solid var(--soft2);padding:0 14px;font-size:16px;margin:14px 0}
+dialog .acoes{display:flex;gap:8px;justify-content:flex-end}
+dialog .acoes button{height:42px;padding:0 18px;border-radius:999px;border:1px solid var(--soft2);background:#fff;font-weight:500}
+dialog .acoes button.preto{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* ---------- mobile tab bar ---------- */
+.tabbar{display:none}
+
+/* ---------- responsive ---------- */
+@media (max-width:1180px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .kpis .destaque{grid-column:1 / -1;order:-1}
+  .of{grid-template-columns:96px minmax(0,1fr) 120px 110px}
+  .of .vend{display:none}
+}
+@media (max-width:1023px){
+  .shell{grid-template-columns:minmax(0,1fr);margin:0;border-radius:0;border:0;box-shadow:none;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;
+    padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+  .side{display:none}
+  .duas{grid-template-columns:minmax(0,1fr)}
+  .tabbar{display:flex;position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:50;justify-content:space-around;
+    padding:6px;border-radius:999px;background:rgba(255,255,255,.82);border:1px solid var(--glass-line);box-shadow:0 12px 30px -12px rgba(0,0,0,.25);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 4px;border-radius:999px;text-decoration:none;font-size:10.5px;font-weight:500;color:var(--mut);min-height:48px;justify-content:center}
+  .tabbar a.on{background:var(--ink);color:#fff}
+  .toast{bottom:calc(92px + env(safe-area-inset-bottom))}
+  .statusMob{display:flex !important}
+}
+@media (max-width:720px){
+  :root{--gutter:14px}
+  .top{align-items:stretch}
+  .tools{width:100%}
+  .tools .busca{flex:1}
+  .tools .busca input{width:100%}
+  .tools .pill.info{display:none}
+  .kpis{grid-template-columns:minmax(0,1fr)}
+  .big{font-size:38px}
+  .sec,.kpi,.destaque{padding:16px}
+  .cards{grid-template-columns:minmax(0,1fr)}
+  #grafico{height:280px}
+  #dispersao{height:260px}
+  .secHead .seg{width:100%;overflow-x:auto}
+  .secHead .seg button{flex:1}
+  .of,.of .vend{display:grid}
+  .of{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"loja preco" "tit tit" "vend cheio";gap:6px 12px;padding:14px 2px}
+  .of.cab{display:none}
+  .of .lj{grid-area:loja}.of .tit{grid-area:tit}.of .vend{grid-area:vend;font-size:12px}
+  .of .pv{grid-area:preco}.of .pc{grid-area:cheio}
+  .cmpLinha{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 12px}
+  .cmpLinha .rot{grid-column:1 / -1;color:#8d8d8d;font-size:11.5px}
+  .cmpLinha.cab .rot{display:none}
+  .cmpSel .pillSel{flex:1;min-width:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important;scroll-behavior:auto !important}}
 </style>
 </head>
 <body>
-<header>
-  <div><h1>📡 Radar de Preços — GPUs</h1><div class="mut" id="status">carregando…</div></div>
-  <div class="row" style="margin:0"><button id="btnColetar">Coletar agora</button></div>
-</header>
-<main>
-  <div class="grid" id="cards"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-radar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.07 4.93A10 10 0 1 0 22 12"/><path d="M16.24 7.76A6 6 0 1 0 18 12"/><circle cx="12" cy="12" r="2"/><path d="m13.4 10.6 6-6"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 21h14"/><path d="m3 9 4-6 4 6a4 4 0 0 1-8 0Z"/><path d="m13 9 4-6 4 6a4 4 0 0 1-8 0Z"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/></symbol>
+    <symbol id="i-store" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 5 4h14l2 5"/><path d="M4 9v11h16V9"/><path d="M3 9h18"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  </defs>
+</svg>
 
-  <section class="card">
-    <div class="row" style="justify-content:space-between">
-      <h2 style="margin:0">Menor preço ao longo do tempo</h2>
-      <div class="row" id="janelas" style="margin:0"></div>
+<div class="shell">
+  <aside class="side" aria-label="Navegação">
+    <nav class="nav glass">
+      <div class="brand"><span class="dot"><svg width="16" height="16"><use href="#i-radar"/></svg></span>Radar</div>
+      <a href="#visao" class="on" data-sec="visao"><svg><use href="#i-home"/></svg>Visão geral</a>
+      <a href="#sec-grafico" data-sec="sec-grafico"><svg><use href="#i-chart"/></svg>Histórico</a>
+      <a href="#ofertas" data-sec="ofertas"><svg><use href="#i-tag"/></svg>Ofertas</a>
+      <a href="#comparar" data-sec="comparar"><svg><use href="#i-scale"/></svg>Comparativo</a>
+    </nav>
+    <div class="statusCard glass" aria-live="polite">
+      <span class="mut" style="font-size:12px">Última coleta</span>
+      <span class="hora num" id="stHora">--:--</span>
+      <span class="mut" style="font-size:12px" id="stDia"></span>
+      <div id="stLojas" style="display:flex;flex-direction:column;gap:8px;margin-top:4px"></div>
+      <span class="mut" style="font-size:11px" id="stModo"></span>
     </div>
-    <div class="mut" style="font-size:12px;margin-bottom:6px">Clique nos cards acima para adicionar ou remover GPUs do gráfico.</div>
-    <div id="grafico"></div>
-  </section>
+  </aside>
 
-  <section class="card">
-    <div class="row" style="justify-content:space-between">
-      <h2 style="margin:0" id="tituloOfertas">Ofertas atuais</h2>
-      <select id="selOfertas"></select>
-    </div>
-    <div class="tabwrap"><table id="tabOfertas"></table></div>
-  </section>
+  <main class="main" id="topo">
+    <header class="top">
+      <div>
+        <h1>Radar de<br>Preços</h1>
+        <div class="sub">
+          <span class="tag" id="tagHoje"></span>
+          <span class="tag statusMob" style="display:none" id="tagStatus"></span>
+        </div>
+      </div>
+      <div class="tools">
+        <span class="pill info"><span class="ic"><svg><use href="#i-store"/></svg></span><span id="pillLojas">carregando…</span></span>
+        <label class="pill busca"><span class="ic claro"><svg><use href="#i-search"/></svg></span>
+          <span class="sr">Buscar GPU</span><input id="busca" type="search" placeholder="Buscar GPU…" autocomplete="off"></label>
+        <button class="icon-btn preto" id="btnColetar" title="Coletar agora" aria-label="Coletar agora" hidden><svg><use href="#i-refresh"/></svg></button>
+      </div>
+    </header>
 
-  <section class="duas">
-    <div class="card">
-      <h2>Comparativo lado a lado</h2>
-      <div class="row"><select id="cmpA"></select><span class="mut">vs</span><select id="cmpB"></select></div>
-      <div class="tabwrap"><table id="tabCmp"></table></div>
-      <div class="aviso" id="notaSpecs"></div>
-    </div>
-    <div class="card">
-      <h2>Preço × desempenho (custo-benefício)</h2>
-      <div id="dispersao"></div>
-      <div class="tabwrap"><table id="tabRank"></table></div>
-    </div>
-  </section>
+    <div class="banner" id="banner" role="alert"><span id="bannerTxt">Não foi possível carregar os dados.</span><button type="button" id="bannerRetry">Tentar de novo</button></div>
 
-  <p class="aviso">⚠ Suspeito = preço abaixo de 60% da mediana da família (comum em anúncios falsos ou genéricos); fica fora do menor preço e dos alertas.
-  AliExpress: apenas produtos com envio do Brasil (categoria "Do Brasil"); confira o frete no checkout.</p>
-</main>
+    <section class="kpis" id="visao" aria-label="Resumo">
+      <div class="kpi glass">
+        <h3>Monitoramento</h3>
+        <div class="big num" id="kpiOfertas">—</div>
+        <span class="mut" style="font-size:12.5px">ofertas válidas agora</span>
+        <ul class="lista" id="kpiLojas"></ul>
+      </div>
+      <div class="destaque dark" id="kpiMelhor">
+        <span class="mut" style="font-size:12.5px">Melhor custo-benefício agora</span>
+        <div class="nomeGpu">—</div>
+      </div>
+      <div class="kpi glass">
+        <h3>Preços-alvo</h3>
+        <div class="big num" id="kpiAlvos">—</div>
+        <span class="mut" style="font-size:12.5px" id="kpiAlvosSub">GPUs no alvo</span>
+        <ul class="lista" id="kpiAlvoLista"></ul>
+      </div>
+    </section>
+
+    <section class="sec glass" aria-labelledby="tGpus">
+      <div class="secHead">
+        <div><h2 id="tGpus">GPUs monitoradas</h2><p class="mut">Menor preço atual por família · % = preço atual vs. mínimo do período</p></div>
+        <div class="seg" role="group" aria-label="Filtrar GPUs" id="segFiltro"></div>
+      </div>
+      <div class="cards" id="cards"><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div></div>
+    </section>
+
+    <section class="sec glass" id="sec-grafico" aria-labelledby="tGraf">
+      <div class="secHead">
+        <div><h2 id="tGraf">Menor preço ao longo do tempo</h2><p class="mut">Use “Gráfico” nos cards para escolher as GPUs.</p></div>
+        <div class="seg" role="group" aria-label="Período do gráfico" id="janelas"></div>
+      </div>
+      <div id="grafico" role="img" aria-label="Gráfico do menor preço ao longo do tempo"></div>
+    </section>
+
+    <section class="sec glass" id="ofertas" aria-labelledby="tituloOfertas">
+      <div class="secHead">
+        <h2 id="tituloOfertas">Ofertas atuais</h2>
+        <label><span class="sr">Escolher GPU</span><select id="selOfertas" class="pillSel"></select></label>
+      </div>
+      <div class="ofertas" id="tabOfertas"></div>
+    </section>
+
+    <section class="duas" id="comparar">
+      <div class="sec dark" aria-labelledby="tCmp">
+        <div class="secHead">
+          <h2 id="tCmp">Comparativo</h2>
+          <div class="cmpSel">
+            <label><span class="sr">GPU A</span><select id="cmpA" class="pillSel"></select></label>
+            <span class="mut">vs</span>
+            <label><span class="sr">GPU B</span><select id="cmpB" class="pillSel"></select></label>
+          </div>
+        </div>
+        <div class="cmp" id="tabCmp"></div>
+        <div class="resumoCmp" id="resumoCmp" hidden></div>
+      </div>
+      <div class="sec glass" aria-labelledby="tRank">
+        <div class="secHead"><div><h2 id="tRank">Preço × desempenho</h2><p class="mut">Mais alto e mais à esquerda = melhor negócio</p></div></div>
+        <div id="dispersao" role="img" aria-label="Dispersão de preço por desempenho"></div>
+        <div class="rank" id="tabRank"></div>
+      </div>
+    </section>
+
+    <p class="notas">Desempenho: índice aproximado em 1080p (RTX 4060 = 100), compilado de reviews públicos.
+      ⚠ Suspeito = preço abaixo de 60% da mediana da família; fica fora do menor preço e dos alertas.
+      AliExpress: apenas produtos com envio do Brasil (categoria “Do Brasil”); confira o frete no checkout.</p>
+  </main>
+</div>
+
+<nav class="tabbar" aria-label="Navegação">
+  <a href="#visao" class="on" data-sec="visao"><svg><use href="#i-home"/></svg>Início</a>
+  <a href="#sec-grafico" data-sec="sec-grafico"><svg><use href="#i-chart"/></svg>Histórico</a>
+  <a href="#ofertas" data-sec="ofertas"><svg><use href="#i-tag"/></svg>Ofertas</a>
+  <a href="#comparar" data-sec="comparar"><svg><use href="#i-scale"/></svg>Comparar</a>
+</nav>
+
+<dialog id="dlgSenha">
+  <form method="dialog">
+    <h3>Senha do painel</h3>
+    <p class="mut" style="margin:0;font-size:13px">Necessária para alterar preços-alvo e coletar agora.</p>
+    <label class="sr" for="inSenha">Senha</label>
+    <input id="inSenha" type="password" autocomplete="current-password">
+    <div class="acoes"><button value="cancel" type="submit">Cancelar</button><button value="ok" type="submit" class="preto">Entrar</button></div>
+  </form>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
 
 <script>
+/* ---------- utilidades ---------- */
+const $ = id => document.getElementById(id);
 const R = v => v==null ? '—' : v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const PCT = (a,b) => (a==null||b==null) ? null : (a-b)/b*100;
+const ESC = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ESC[c]);      // texto vindo das lojas
+const urlSegura = u => /^https:\/\//i.test(u||'') ? esc(u) : '#';
+const icone = (id, cls='') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
 const JANELAS = [['24h',{horas:24}],['72h',{horas:72}],['7d',{horas:168}],['30d',{horas:720}],['Tudo',{}]];
 const NOMES_MIN = {'24h':'24 horas','7d':'7 dias','30d':'30 dias','inicio':'Desde o início'};
 const LOJA = {kabum:'KaBuM',aliexpress:'AliExpress'};
-const CORES = ['#3b82f6','#22c55e','#f59e0b','#ef4444','#a855f7','#14b8a6','#ec4899','#eab308'];
-let dados=[], selecionadas=new Set(), janela='Tudo';
-const grafico = echarts.init(document.getElementById('grafico'), 'dark');
-const disp = echarts.init(document.getElementById('dispersao'), 'dark');
-addEventListener('resize',()=>{grafico.resize();disp.resize()});
+const FILTROS = [['todas','Todas'],['oferta','Com oferta'],['alvo','Com alvo']];
+// paleta monocromática: tom + traço distinguem as séries
+const SERIES = [['#111111','solid'],['#7a7a7a','solid'],['#111111','dashed'],['#b0b0b0','solid'],['#555555','dotted'],['#7a7a7a','dashed'],['#111111','dotted'],['#9a9a9a','dotted'],['#333333','dashed']];
+let dados=[], selecionadas=new Set(), janela='Tudo', filtro='todas', termo='', geracaoGrafico=0, carregando=false;
 
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3200)}
+function hora(t){return new Date(t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}
+
+/* ---------- gráficos ---------- */
+const eixo = {axisLine:{lineStyle:{color:'#d9d9d9'}},axisLabel:{color:'#8a8a8a',fontSize:11},splitLine:{lineStyle:{color:'#ededed'}}};
+const grafico = echarts.init($('grafico'), null, {renderer:'svg'});
+const disp = echarts.init($('dispersao'), null, {renderer:'svg'});
+new ResizeObserver(()=>{grafico.resize();disp.resize()}).observe($('topo'));
+const estreito = () => matchMedia('(max-width:720px)').matches;
+
+/* ---------- senha (dialog) e API ---------- */
 function lerSenha(){try{return localStorage.getItem('radarSenha')||''}catch(e){return window._senha||''}}
 function guardarSenha(s){window._senha=s;try{localStorage.setItem('radarSenha',s)}catch(e){}}
+function pedirSenha(){
+  return new Promise(res=>{
+    const d=$('dlgSenha'), inp=$('inSenha'); inp.value='';
+    d.onclose=()=>res(d.returnValue==='ok'&&inp.value?inp.value:null);
+    d.showModal(); inp.focus();
+  });
+}
 async function api(u,opt={},tentou){
   const headers={...(opt.headers||{})};
   if(opt.method&&opt.method!=='GET'){const s=lerSenha(); if(s) headers['X-Senha']=s;}
   const r=await fetch(u,{...opt,headers});
   if(r.status===401&&!tentou){
-    const s=prompt('Senha do painel (necessária para alterar):');
+    const s=await pedirSenha();
     if(s){guardarSenha(s);return api(u,opt,true)}
   }
   if(!r.ok){let m=await r.text();try{m=JSON.parse(m).detail||m}catch(e){}throw new Error(m)}
   return r.json();
 }
 
+/* ---------- cards de GPU ---------- */
 function selo(f){
   const p=f.melhor?.preco_vista, m=f.minimos;
-  if(!p) return '<span class="selo neutro">sem oferta disponível</span>';
-  if(f.preco_alvo && p<=f.preco_alvo) return '<span class="selo bom">🎯 no preço-alvo</span>';
-  if(m.coletas<2) return '<span class="selo neutro">primeira coleta</span>';
-  if(m.inicio && p<=m.inicio) return '<span class="selo bom">menor preço desde o início</span>';
-  if(m['24h'] && p<=m['24h']*1.02) return '<span class="selo bom">perto do mínimo de 24h</span>';
-  if(m.inicio && p>m.inicio*1.10) return '<span class="selo ruim">10%+ acima do menor já visto</span>';
-  return '<span class="selo neutro">preço comum</span>';
+  if(!p) return '<span class="tag">sem oferta disponível</span>';
+  if(f.preco_alvo && p<=f.preco_alvo) return `<span class="tag bom">${icone('target')}no preço-alvo</span>`;
+  if(m.coletas<2) return '<span class="tag">primeira coleta</span>';
+  if(m.inicio && p<=m.inicio) return '<span class="tag bom">menor preço desde o início</span>';
+  if(m['24h'] && p<=m['24h']*1.02) return '<span class="tag bom">perto do mínimo de 24h</span>';
+  if(m.inicio && p>m.inicio*1.10) return '<span class="tag ruim">10%+ acima do menor já visto</span>';
+  return '<span class="tag">preço comum</span>';
 }
-
 function infoAlvo(f){
   const p=f.melhor?.preco_vista, a=f.preco_alvo;
   if(!a||!p) return '';
@@ -147,89 +462,159 @@ function lerValor(txt){
 }
 async function salvarAlvo(inp){
   const v=lerValor(inp.value); inp.classList.remove('salvo','erro');
-  if(Number.isNaN(v)){inp.classList.add('erro');return}
+  if(Number.isNaN(v)){inp.classList.add('erro');toast('Valor inválido. Use, por exemplo, 1.750,00');return}
   const f=dados.find(x=>x.id==inp.dataset.alvo);
   if((f.preco_alvo??null)===(v==null?null:Math.round(v*100)/100)) return;
   try{
     const r=await api('/api/alvo/'+f.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({preco:v})});
     f.preco_alvo=r.preco_alvo; inp.classList.add('salvo');
-    setTimeout(()=>{cards()},600);
-  }catch(e){inp.classList.add('erro');inp.title=e.message}
+    toast(r.preco_alvo?`Alvo de ${f.nome}: ${R(r.preco_alvo)}${r.atingido?' — já atingido!':''}`:`Alvo de ${f.nome} removido`);
+    setTimeout(()=>{cards();kpis()},600);
+  }catch(e){inp.classList.add('erro');toast('Não foi possível salvar: '+e.message)}
 }
-function editandoAlvo(){return document.activeElement?.dataset?.alvo}
+const editandoAlvo = () => document.activeElement?.dataset?.alvo;
 
+function visiveis(){
+  const t=termo.trim().toLowerCase();
+  return dados.filter(f=>(!t||f.nome.toLowerCase().includes(t))
+    &&(filtro!=='oferta'||f.melhor)&&(filtro!=='alvo'||f.preco_alvo));
+}
 function cards(){
   if(editandoAlvo()) return;
-  document.getElementById('cards').innerHTML = dados.map(f=>{
-    const p=f.melhor?.preco_vista;
-    const chips=Object.keys(NOMES_MIN).map(k=>{
-      const v=f.minimos[k], d=PCT(p,v);
-      const cls=d==null?'':(d>0.5?'up':(d<-0.5?'down':'eq'));
-      return `<div class="chip"><span class="mut">${NOMES_MIN[k]}</span><b>${R(v)}</b><span class="${cls}">${d==null?'':(d>0?'+':'')+d.toFixed(1)+'%'}</span></div>`;
-    }).join('');
-    const atingido=f.preco_alvo&&p&&p<=f.preco_alvo;
-    return `<div class="card fam ${selecionadas.has(f.id)?'sel':''} ${atingido?'atingido':''}" data-id="${f.id}">
-      <div style="display:flex;justify-content:space-between"><b>${f.nome}</b><span class="mut">${f.qtd_ofertas} ofertas</span></div>
-      <div class="preco">${R(p)}</div>
-      <div class="loja mut">${f.melhor?`${LOJA[f.melhor.loja]||f.melhor.loja} · <a href="${f.melhor.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${f.melhor.titulo.slice(0,60)}…</a>`:'—'}</div>
-      ${selo(f)}
-      <div class="mut" style="font-size:12px;margin-top:6px">${Object.keys(LOJA).map(l=>`${LOJA[l]}: <b style="color:var(--tx)">${R(f.menor_por_loja[l])}</b>`).join(' · ')}${f.qtd_suspeitas?` · <span class="eq">⚠ ${f.qtd_suspeitas} suspeita${f.qtd_suspeitas>1?'s':''}</span>`:''}</div>
-      <div class="alvo" onclick="event.stopPropagation()">
-        <label>🎯 Preço-alvo</label>
-        <input type="text" inputmode="decimal" data-alvo="${f.id}" placeholder="sem alvo" value="${f.preco_alvo!=null?f.preco_alvo.toLocaleString('pt-BR',{minimumFractionDigits:2}):''}">
-        <span class="alvoInfo">${infoAlvo(f)}</span>
-      </div>
-      <div class="chips">${chips}</div>
-      <div class="mut" style="font-size:11px;margin-top:6px">mínimos do período · % = preço atual vs. mínimo${f.minimos.desde?' · desde '+new Date(f.minimos.desde).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):''}</div>
-    </div>`}).join('');
+  const lst=visiveis();
+  $('cards').innerHTML = lst.length ? lst.map(cardGpu).join('') :
+    `<div class="vazio" style="grid-column:1/-1">Nenhuma GPU ${termo?`com “${esc(termo)}”`:'neste filtro'}.</div>`;
   document.querySelectorAll('[data-alvo]').forEach(inp=>{
     inp.onkeydown=e=>{if(e.key==='Enter')inp.blur(); if(e.key==='Escape'){inp.value='';inp.blur()}};
     inp.onblur=()=>salvarAlvo(inp);
   });
-  document.querySelectorAll('.fam').forEach(el=>el.onclick=()=>{
-    const id=el.dataset.id; selecionadas.has(id)?selecionadas.delete(id):selecionadas.add(id);
-    if(!selecionadas.size) selecionadas.add(id);
-    cards(); desenharGrafico(); document.getElementById('selOfertas').value=id; ofertas();
+  document.querySelectorAll('[data-graf]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.graf; selecionadas.has(id)?selecionadas.delete(id):selecionadas.add(id);
+    cards(); desenharGrafico();
+    if(selecionadas.has(id)) toast('Adicionada ao gráfico');
+  });
+  document.querySelectorAll('[data-of]').forEach(b=>b.onclick=()=>{
+    $('selOfertas').value=b.dataset.of; ofertas(); $('ofertas').scrollIntoView();
   });
 }
-
-function botoesJanela(){
-  document.getElementById('janelas').innerHTML=JANELAS.map(([n])=>`<button class="${n==janela?'on':''}" data-j="${n}">${n}</button>`).join('');
-  document.querySelectorAll('#janelas button').forEach(b=>b.onclick=()=>{janela=b.dataset.j;botoesJanela();desenharGrafico()});
+function cardGpu(f){
+  const p=f.melhor?.preco_vista;
+  const chips=Object.keys(NOMES_MIN).map(k=>{
+    const v=f.minimos[k], d=PCT(p,v);
+    const cls=d==null?'':(d>0.5?'up':(d<-0.5?'down':'eq'));
+    return `<div class="chip"><span class="mut">${NOMES_MIN[k]}</span><b class="num">${R(v)}</b><span class="${cls} num">${d==null?'&nbsp;':(d>0?'+':'')+d.toFixed(1)+'%'}</span></div>`;
+  }).join('');
+  const atingido=f.preco_alvo&&p&&p<=f.preco_alvo, noGraf=selecionadas.has(f.id);
+  const lojas=Object.keys(LOJA).map(l=>`<span>${LOJA[l]} <b class="num">${R(f.menor_por_loja[l])}</b></span>`).join('')
+    +(f.qtd_suspeitas?`<span class="tag aviso">⚠ ${f.qtd_suspeitas} suspeita${f.qtd_suspeitas>1?'s':''}</span>`:'');
+  return `<article class="gpu ${noGraf?'noGrafico':''} ${atingido?'atingido':''}" aria-label="${esc(f.nome)}">
+    <div class="gpuTop"><b>${esc(f.nome)}</b><span class="tag">${f.qtd_ofertas} oferta${f.qtd_ofertas==1?'':'s'}</span></div>
+    <div class="preco num">${R(p)}</div>
+    <div class="oferta">${f.melhor?`${esc(LOJA[f.melhor.loja]||f.melhor.loja)} · <a href="${urlSegura(f.melhor.url)}" target="_blank" rel="noopener noreferrer">${esc(f.melhor.titulo)}</a>`:'Nenhuma oferta nas lojas monitoradas.'}</div>
+    <div>${selo(f)}</div>
+    <div class="lojas">${lojas}</div>
+    <div class="alvo">
+      <label for="alvo-${f.id}">${icone('target')}Preço-alvo</label>
+      <input id="alvo-${f.id}" type="text" inputmode="decimal" data-alvo="${f.id}" placeholder="sem alvo" enterkeyhint="done"
+        value="${f.preco_alvo!=null?f.preco_alvo.toLocaleString('pt-BR',{minimumFractionDigits:2}):''}">
+      ${infoAlvo(f)?`<span class="alvoInfo">${infoAlvo(f)}</span>`:''}
+    </div>
+    <div class="chips">${chips}</div>
+    <div class="gpuAcoes">
+      <button type="button" data-graf="${f.id}" aria-pressed="${noGraf}">${icone('chart')}Gráfico</button>
+      <button type="button" data-of="${f.id}">${icone('list')}Ofertas</button>
+    </div>
+    ${f.minimos.desde?`<div class="rodapeCard">desde ${new Date(f.minimos.desde).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})} · ${f.minimos.coletas} coleta${f.minimos.coletas==1?'':'s'}</div>`:''}
+  </article>`;
 }
 
+/* ---------- KPIs ---------- */
+function kpis(){
+  const validas=dados.reduce((s,f)=>s+f.qtd_ofertas,0);
+  $('kpiOfertas').textContent=validas.toLocaleString('pt-BR');
+  const porLoja={}; dados.forEach(f=>Object.keys(f.menor_por_loja||{}).forEach(l=>porLoja[l]=(porLoja[l]||0)+1));
+  $('kpiLojas').innerHTML=Object.keys(LOJA).map(l=>`<li><span><i class="bolinha ${porLoja[l]?'':'vazio'}"></i>${LOJA[l]}</span><span class="num">${porLoja[l]||0} de ${dados.length} GPUs</span></li>`).join('');
+
+  const melhor=dados.filter(f=>f.melhor&&f.reais_por_ponto).sort((a,b)=>a.reais_por_ponto-b.reais_por_ponto)[0];
+  $('kpiMelhor').innerHTML = melhor ? `
+    <span class="mut" style="font-size:12.5px">Melhor custo-benefício agora</span>
+    <div class="nomeGpu">${esc(melhor.nome)}</div>
+    <div class="linhaDados">
+      <div><span class="mut" style="font-size:11.5px">Preço</span><b class="num">${R(melhor.melhor.preco_vista)}</b></div>
+      <div><span class="mut" style="font-size:11.5px">R$ / ponto</span><b class="num">${R(melhor.reais_por_ponto)}</b></div>
+      <div><span class="mut" style="font-size:11.5px">Loja</span><b>${esc(LOJA[melhor.melhor.loja]||melhor.melhor.loja)}</b></div>
+    </div>
+    <a class="btn-claro" href="${urlSegura(melhor.melhor.url)}" target="_blank" rel="noopener noreferrer"><span class="ic">${icone('arrow')}</span>Ver oferta</a>`
+    : '<span class="mut" style="font-size:12.5px">Melhor custo-benefício agora</span><div class="nomeGpu">Sem ofertas ainda</div>';
+
+  const comAlvo=dados.filter(f=>f.preco_alvo);
+  const noAlvo=comAlvo.filter(f=>f.melhor&&f.melhor.preco_vista<=f.preco_alvo);
+  $('kpiAlvos').innerHTML=comAlvo.length?`${noAlvo.length}<small class="mut"> / ${comAlvo.length}</small>`:'0';
+  $('kpiAlvosSub').textContent=comAlvo.length?'GPUs no preço-alvo':'Nenhum alvo definido — use 🎯 nos cards';
+  const perto=comAlvo.filter(f=>f.melhor).map(f=>({f,d:(f.melhor.preco_vista-f.preco_alvo)/f.melhor.preco_vista*100})).sort((a,b)=>a.d-b.d).slice(0,3);
+  $('kpiAlvoLista').innerHTML=perto.map(({f,d})=>`<li><span><i class="bolinha ${d<=0?'':'vazio'}"></i><span class="nome">${esc(f.nome)}</span></span><span class="num ${d<=0?'down':'mut'}">${d<=0?'no alvo':'faltam '+d.toFixed(1)+'%'}</span></li>`).join('');
+}
+
+/* ---------- gráfico de preço ---------- */
+function botoesJanela(){
+  $('janelas').innerHTML=JANELAS.map(([n])=>`<button type="button" aria-pressed="${n==janela}" data-j="${n}">${n}</button>`).join('');
+  document.querySelectorAll('#janelas button').forEach(b=>b.onclick=()=>{janela=b.dataset.j;botoesJanela();desenharGrafico()});
+}
+function botoesFiltro(){
+  $('segFiltro').innerHTML=FILTROS.map(([k,n])=>`<button type="button" aria-pressed="${k==filtro}" data-f="${k}">${n}</button>`).join('');
+  document.querySelectorAll('#segFiltro button').forEach(b=>b.onclick=()=>{filtro=b.dataset.f;botoesFiltro();cards()});
+}
 async function desenharGrafico(){
+  const minha=++geracaoGrafico;                 // descarta respostas de cliques antigos
   const q=new URLSearchParams(JANELAS.find(j=>j[0]==janela)[1]).toString();
   const ids=[...selecionadas];
-  const series=await Promise.all(ids.map(async(id,i)=>{
-    const f=dados.find(x=>x.id==id); const pts=await api(`/api/serie/${id}?${q}`);
-    const idx=dados.findIndex(x=>x.id==id);
-    return {name:f.nome,type:'line',step:'end',showSymbol:pts.length<40,
-      data:pts.map(p=>[p.x,p.y]),lineStyle:{width:2},color:CORES[idx%CORES.length],
-      markLine: ids.length==1&&f.minimos.inicio?{symbol:'none',data:[{yAxis:f.minimos.inicio,name:'menor'}],
-        label:{formatter:'menor: '+R(f.minimos.inicio)},lineStyle:{type:'dashed',color:'#22c55e'}}:undefined};
-  }));
-  grafico.setOption({backgroundColor:'transparent',tooltip:{trigger:'axis',valueFormatter:R},
-    legend:{top:0},grid:{left:70,right:20,top:36,bottom:40},
-    xAxis:{type:'time'},yAxis:{type:'value',scale:true,axisLabel:{formatter:v=>'R$ '+v.toLocaleString('pt-BR')}},
+  let series;
+  try{
+    series=await Promise.all(ids.map(async id=>{
+      const f=dados.find(x=>x.id==id); const pts=await api(`/api/serie/${id}?${q}`);
+      const [cor,traco]=SERIES[dados.findIndex(x=>x.id==id)%SERIES.length];
+      return {name:f.nome,type:'line',step:'end',showSymbol:pts.length<30,symbolSize:5,
+        data:pts.map(p=>[p.x,p.y]),lineStyle:{width:2,type:traco},color:cor,
+        markLine: ids.length==1&&f.minimos.inicio?{symbol:'none',silent:true,data:[{yAxis:f.minimos.inicio}],
+          label:{formatter:'menor '+R(f.minimos.inicio),color:'#1d8f4e',fontSize:11,position:'insideEndTop'},lineStyle:{type:'dashed',color:'#1d8f4e'}}:undefined};
+    }));
+  }catch(e){return}
+  if(minha!==geracaoGrafico) return;
+  const n=estreito();
+  grafico.setOption({backgroundColor:'transparent',textStyle:{fontFamily:'Inter, system-ui, sans-serif'},
+    tooltip:{trigger:'axis',valueFormatter:R,backgroundColor:'#111',borderWidth:0,textStyle:{color:'#fff',fontSize:12}},
+    legend:{top:0,left:0,icon:'roundRect',itemWidth:14,itemHeight:4,textStyle:{color:'#555',fontSize:11.5},type:'scroll'},
+    grid:{left:n?8:12,right:n?8:16,top:36,bottom:8,containLabel:true},
+    xAxis:{type:'time',...eixo,splitLine:{show:false},axisLabel:{...eixo.axisLabel,hideOverlap:true}},
+    yAxis:{type:'value',scale:true,...eixo,axisLabel:{...eixo.axisLabel,formatter:v=>n?'R$'+(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'k':'R$ '+v.toLocaleString('pt-BR')}},
+    graphic: ids.length?[]:[{type:'text',left:'center',top:'middle',style:{text:'Escolha GPUs em “Gráfico” nos cards',fill:'#8a8a8a',fontSize:13}}],
     series},true);
 }
 
+/* ---------- ofertas ---------- */
 async function ofertas(){
-  const id=document.getElementById('selOfertas').value; const f=dados.find(x=>x.id==id);
-  const lst=await api('/api/ofertas/'+id);
-  document.getElementById('tituloOfertas').textContent=`Ofertas atuais — ${f.nome}`;
-  document.getElementById('tabOfertas').innerHTML='<tr><th>Loja</th><th>Produto</th><th>Vendedor</th><th class="num">À vista</th><th class="num">Cheio</th></tr>'+
-    (lst.length?lst.map(o=>`<tr class="${o.suspeito?'susp':''}"><td>${LOJA[o.loja]||o.loja}</td><td>${o.suspeito?'<span class="eq" title="Preço muito abaixo da mediana">⚠ suspeito</span> ':''}<a href="${o.url}" target="_blank" rel="noopener">${o.titulo}</a></td><td class="mut">${o.vendedor||''}</td><td class="num"><b>${R(o.preco_vista)}</b></td><td class="num mut">${R(o.preco_cheio)}</td></tr>`).join('')
-    :'<tr><td colspan="5" class="mut">Nenhuma oferta disponível nas lojas monitoradas.</td></tr>');
+  const id=$('selOfertas').value; const f=dados.find(x=>x.id==id); if(!f) return;
+  $('tituloOfertas').textContent=`Ofertas atuais — ${f.nome}`;
+  let lst; try{lst=await api('/api/ofertas/'+id)}catch(e){$('tabOfertas').innerHTML='<div class="vazio">Não foi possível carregar as ofertas.</div>';return}
+  $('tabOfertas').innerHTML = lst.length ?
+    '<div class="of cab"><span>Loja</span><span>Produto</span><span class="vend">Vendedor</span><span class="r">À vista</span><span class="r">Cheio</span></div>'+
+    lst.map(o=>`<div class="of ${o.suspeito?'susp':''}">
+      <span class="lj"><span class="tag">${esc(LOJA[o.loja]||o.loja)}</span></span>
+      <span class="tit">${o.suspeito?'<span class="tag aviso" title="Preço muito abaixo da mediana">⚠ suspeito</span> ':''}<a href="${urlSegura(o.url)}" target="_blank" rel="noopener noreferrer">${esc(o.titulo)}</a></span>
+      <span class="vend mut">${esc(o.vendedor||'')}</span>
+      <b class="pv r num">${R(o.preco_vista)}</b>
+      <span class="pc r mut num">${o.preco_cheio&&o.preco_cheio>o.preco_vista?'<s>'+R(o.preco_cheio)+'</s>':''}</span>
+    </div>`).join('')
+    : '<div class="vazio">Nenhuma oferta disponível nas lojas monitoradas.</div>';
 }
 
+/* ---------- comparativo ---------- */
 const LINHAS=[
   ['Menor preço agora',f=>f.melhor?.preco_vista,R,'menor'],
   ['Menor desde o início',f=>f.minimos.inicio,R,'menor'],
-  ['Desempenho (RTX 4060 = 100)',f=>f.specs.desempenho,v=>v,'maior'],
-  ['R$ por ponto de desempenho',f=>f.reais_por_ponto,R,'menor'],
-  ['VRAM',f=>f.specs.vram_gb,v=>v+' GB '+'','maior'],
+  ['Desempenho (4060 = 100)',f=>f.specs.desempenho,v=>v,'maior'],
+  ['R$ por ponto',f=>f.reais_por_ponto,R,'menor'],
+  ['VRAM',f=>f.specs.vram_gb,v=>v+' GB','maior'],
   ['Memória',f=>f.specs.tipo_memoria,v=>v,null],
   ['Barramento',f=>f.specs.barramento_bits,v=>v+' bits','maior'],
   ['Largura de banda',f=>f.specs.banda_gbs,v=>v+' GB/s','maior'],
@@ -239,67 +624,103 @@ const LINHAS=[
   ['Arquitetura',f=>f.specs.arquitetura+' ('+f.specs.lancamento+')',v=>v,null],
 ];
 function comparar(){
-  const a=dados.find(x=>x.id==cmpA.value), b=dados.find(x=>x.id==cmpB.value);
-  document.getElementById('tabCmp').innerHTML=`<tr><th></th><th>${a.nome}</th><th>${b.nome}</th></tr>`+
+  const a=dados.find(x=>x.id==$('cmpA').value), b=dados.find(x=>x.id==$('cmpB').value);
+  if(!a||!b) return;
+  $('tabCmp').innerHTML=`<div class="cmpLinha cab"><span class="rot"></span><span>${esc(a.nome)}</span><span>${esc(b.nome)}</span></div>`+
     LINHAS.map(([n,g,fm,melhor])=>{
       const va=g(a),vb=g(b); let ca='',cb='';
       if(melhor&&va!=null&&vb!=null&&va!=vb){const aV=melhor=='menor'?va<vb:va>vb; ca=aV?'vence':''; cb=aV?'':'vence'}
-      return `<tr><td class="mut">${n}</td><td class="${ca}">${va==null?'—':fm(va)}</td><td class="${cb}">${vb==null?'—':fm(vb)}</td></tr>`}).join('')+
-    (a.melhor&&b.melhor?`<tr><td class="mut">Resumo</td><td colspan="2">${resumoCmp(a,b)}</td></tr>`:'');
+      return `<div class="cmpLinha"><span class="rot mut">${n}</span><span class="v num ${ca}">${va==null?'—':esc(fm(va))}</span><span class="v num ${cb}">${vb==null?'—':esc(fm(vb))}</span></div>`}).join('');
+  const r=$('resumoCmp');
+  if(a.melhor&&b.melhor&&a.id!==b.id){r.hidden=false;r.innerHTML=resumoCmp(a,b)} else r.hidden=true;
 }
 function resumoCmp(a,b){
-  const pa=a.melhor.preco_vista,pb=b.melhor.preco_vista,da=a.specs.desempenho,db=b.specs.desempenho;
+  const pa=a.melhor.preco_vista,pb=b.melhor.preco_vista;
   const [r,c]=pa<pb?[a,b]:[b,a]; const dp=(Math.max(pa,pb)/Math.min(pa,pb)-1)*100;
   const dd=(c.specs.desempenho/r.specs.desempenho-1)*100;
-  return `${c.nome} custa ${dp.toFixed(0)}% a mais que ${r.nome} e entrega ~${dd>=0?dd.toFixed(0)+'% mais':Math.abs(dd).toFixed(0)+'% menos'} desempenho. `+
-    (dd>dp?`<span class="vence">A mais cara compensa no custo-benefício.</span>`:`<span class="vence">A mais barata tem melhor custo-benefício.</span>`);
+  return `<b>${esc(c.nome)}</b> custa ${dp.toFixed(0)}% a mais que <b>${esc(r.nome)}</b> e entrega ~${dd>=0?dd.toFixed(0)+'% mais':Math.abs(dd).toFixed(0)+'% menos'} desempenho. `+
+    (dd>dp?'A mais cara compensa no custo-benefício.':'A mais barata tem melhor custo-benefício.');
 }
 
 function dispersao(){
   const pts=dados.filter(f=>f.melhor&&f.specs.desempenho);
-  disp.setOption({backgroundColor:'transparent',grid:{left:50,right:110,top:24,bottom:50},
-    tooltip:{formatter:p=>`${p.data[2]}<br>${R(p.data[0])} · desempenho ${p.data[1]}`},
-    xAxis:{name:'Menor preço agora',nameLocation:'middle',nameGap:30,scale:true,splitNumber:4,axisLabel:{formatter:v=>'R$ '+(v/1000).toLocaleString('pt-BR')+' mil'}},
-    yAxis:{name:'Desempenho',scale:true,max:v=>v.max+5,min:v=>v.min-5},
-    series:[{type:'scatter',symbolSize:14,data:pts.map(f=>[f.melhor.preco_vista,f.specs.desempenho,f.nome]),
-      itemStyle:{color:p=>CORES[dados.findIndex(x=>x.nome==p.data[2])%CORES.length]},
-      label:{show:true,position:'right',formatter:p=>p.data[2],color:'#cbd5e1',fontSize:11}}]},true);
   const rank=[...pts].sort((a,b)=>a.reais_por_ponto-b.reais_por_ponto);
-  document.getElementById('tabRank').innerHTML='<tr><th>#</th><th>GPU</th><th class="num">Preço</th><th class="num">R$/ponto</th><th class="num">R$/GB</th></tr>'+
-    rank.map((f,i)=>`<tr><td>${i+1}</td><td>${f.nome}</td><td class="num">${R(f.melhor.preco_vista)}</td><td class="num ${i==0?'vence':''}">${R(f.reais_por_ponto)}</td><td class="num">${R(f.reais_por_gb)}</td></tr>`).join('');
+  const melhorId=rank[0]?.id, n=estreito();
+  disp.setOption({backgroundColor:'transparent',textStyle:{fontFamily:'Inter, system-ui, sans-serif'},
+    grid:{left:4,right:n?12:24,top:20,bottom:6,containLabel:true},
+    tooltip:{backgroundColor:'#111',borderWidth:0,textStyle:{color:'#fff',fontSize:12},formatter:p=>`${esc(p.value[2])}<br>${R(p.value[0])} · desempenho ${p.value[1]}`},
+    xAxis:{scale:true,splitNumber:4,...eixo,axisLabel:{...eixo.axisLabel,formatter:v=>'R$'+(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'k'}},
+    yAxis:{scale:true,...eixo,max:v=>v.max+6,min:v=>v.min-6},
+    series:[{type:'scatter',symbolSize:n?11:14,data:pts.map(f=>({value:[f.melhor.preco_vista,f.specs.desempenho,f.nome],
+        itemStyle:{color:f.id===melhorId?'#111':'#fff',borderColor:'#111',borderWidth:1.5}})),
+      labelLayout:{hideOverlap:true},
+      label:{show:true,position:'top',formatter:p=>String(p.value[2]).replace(/^(RTX|RX) /,''),color:'#555',fontSize:n?10:11}}]},true);
+  $('tabRank').innerHTML=rank.map((f,i)=>`<div class="rankLinha"><span class="pos">${i+1}</span><span>${esc(f.nome)}</span><span class="num mut">${R(f.melhor.preco_vista)}</span><b class="num">${R(f.reais_por_ponto)}<span class="mut" style="font-weight:400">/pt</span></b></div>`).join('')
+    || '<div class="vazio">Sem ofertas para comparar ainda.</div>';
 }
 
+/* ---------- status ---------- */
 async function status(){
   const s=await api('/api/status');
-  btnColetar.style.display=s.pode_coletar?'':'none';
-  const hora=t=>new Date(t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('status').innerHTML = s.ultima
-    ? `Última coleta: ${new Date(s.ultima).toLocaleString('pt-BR')} · ${s.por_loja.map(x=>`${LOJA[x.loja]||x.loja} (${hora(x.ts)}): ${x.erro?`<span class="up" title="${x.erro.replace(/"/g,'')}">erro</span>`:x.ofertas+' ofertas'}`).join(' · ')} · a cada ~${s.intervalo_minutos} min${s.nuvem?' (GitHub Actions)':''}${s.coletando?' · <b>coletando…</b>':''}`
-    : 'Nenhuma coleta ainda — clique em "Coletar agora".';
+  $('btnColetar').hidden=!s.pode_coletar;
+  if(!s.ultima){$('stHora').textContent='--:--';$('pillLojas').textContent='Nenhuma coleta ainda';$('tagStatus').textContent='Nenhuma coleta ainda';return}
+  $('stHora').textContent=hora(s.ultima);
+  $('stDia').textContent=new Date(s.ultima).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'});
+  $('stLojas').innerHTML=s.por_loja.map(x=>`<div class="lojaLinha"><span><i class="bolinha ${x.erro?'erro':(x.ofertas?'':'vazio')}"></i>${esc(LOJA[x.loja]||x.loja)}</span>
+    <span class="${x.erro?'up':'mut'} num" ${x.erro?`title="${esc(x.erro)}"`:''}>${x.erro?'erro':x.ofertas+' · '+hora(x.ts)}</span></div>`).join('');
+  $('stModo').textContent=`a cada ~${s.intervalo_minutos} min${s.nuvem?' · GitHub Actions':' · local'}`;
+  const resumo=s.por_loja.map(x=>`${LOJA[x.loja]||x.loja} ${x.erro?'erro':x.ofertas}`).join(' · ');
+  $('pillLojas').textContent=resumo;
+  $('tagStatus').textContent=`Coleta ${hora(s.ultima)} · ${resumo}`;
 }
 
+/* ---------- carga ---------- */
 async function carregar(primeira){
-  dados=await api('/api/resumo');
-  if(primeira){
-    const opts=dados.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
-    ['selOfertas','cmpA','cmpB'].forEach(id=>document.getElementById(id).innerHTML=opts);
-    cmpA.value='rx-7600'; cmpB.value='rtx-3060ti';
-    selecionadas=new Set(dados.filter(f=>f.melhor).slice(0,3).map(f=>f.id));
-    if(!selecionadas.size&&dados[0]) selecionadas.add(dados[0].id);
-    selOfertas.value=[...selecionadas][0]||dados[0].id;
-    document.getElementById('notaSpecs').textContent='Desempenho: índice aproximado em 1080p (reviews públicos). Edite em dados/specs.json.';
-  }
-  cards(); desenharGrafico(); ofertas(); comparar(); dispersao(); status();
+  if(carregando) return; carregando=true;
+  try{
+    dados=await api('/api/resumo');
+    $('banner').classList.remove('on');
+    if(primeira){
+      const opts=dados.map(f=>`<option value="${esc(f.id)}">${esc(f.nome)}</option>`).join('');
+      ['selOfertas','cmpA','cmpB'].forEach(id=>$(id).innerHTML=opts);
+      const ids=dados.map(f=>f.id);
+      $('cmpA').value=ids.includes('rx-7600')?'rx-7600':ids[0];
+      $('cmpB').value=ids.includes('rtx-3060ti')?'rtx-3060ti':(ids[1]||ids[0]);
+      selecionadas=new Set(dados.filter(f=>f.melhor).slice(0,3).map(f=>f.id));
+      $('selOfertas').value=[...selecionadas][0]||ids[0];
+    }
+    cards(); kpis(); desenharGrafico(); ofertas(); comparar(); dispersao();
+    status().catch(()=>{});
+  }catch(e){
+    $('bannerTxt').textContent='Não foi possível carregar os dados ('+e.message.slice(0,120)+').';
+    $('banner').classList.add('on');
+    if(primeira) $('cards').innerHTML='<div class="vazio" style="grid-column:1/-1">Sem dados por enquanto.</div>';
+  }finally{carregando=false}
 }
 
-btnColetar.onclick=async()=>{
-  btnColetar.disabled=true;btnColetar.textContent='Coletando…';
-  let r; try{r=await api('/api/coletar',{method:'POST'})}catch(e){alert(e.message);btnColetar.disabled=false;btnColetar.textContent='Coletar agora';return}
-  if(r.msg&&r.ok){btnColetar.textContent='Disparada ✔';setTimeout(()=>{btnColetar.disabled=false;btnColetar.textContent='Coletar agora'},60000);return}
-  const t=setInterval(async()=>{const s=await api('/api/status');if(!s.coletando){clearInterval(t);btnColetar.disabled=false;btnColetar.textContent='Coletar agora';carregar()}},3000)};
-selOfertas.onchange=ofertas; cmpA.onchange=comparar; cmpB.onchange=comparar;
-botoesJanela(); carregar(true);
-setInterval(()=>carregar(),60000);
+/* ---------- eventos ---------- */
+$('btnColetar').onclick=async()=>{
+  const b=$('btnColetar'); b.disabled=true; b.classList.add('girando');
+  const fim=()=>{b.disabled=false;b.classList.remove('girando')};
+  let r; try{r=await api('/api/coletar',{method:'POST'})}catch(e){toast(e.message);fim();return}
+  if(r.msg){toast(r.msg); if(r.ok) setTimeout(fim,60000); else fim(); return}
+  toast('Coletando preços…');
+  const t=setInterval(async()=>{const s=await api('/api/status');if(!s.coletando){clearInterval(t);fim();toast('Coleta concluída');carregar()}},3000)};
+$('busca').oninput=e=>{termo=e.target.value;cards()};
+$('selOfertas').onchange=ofertas; $('cmpA').onchange=comparar; $('cmpB').onchange=comparar;
+$('bannerRetry').onclick=()=>carregar(!dados.length);
+$('tagHoje').innerHTML=`${icone('cal')} ${new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})}`;
+
+// navegação: destaca a seção visível
+const links=[...document.querySelectorAll('[data-sec]')];
+const obsSecao=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting) links.forEach(a=>a.classList.toggle('on',a.dataset.sec===e.target.id));
+}),{rootMargin:'-40% 0px -55% 0px'});
+['visao','sec-grafico','ofertas','comparar'].forEach(id=>obsSecao.observe($(id)));
+matchMedia('(max-width:720px)').addEventListener('change',()=>{desenharGrafico();dispersao()});
+
+botoesJanela(); botoesFiltro(); carregar(true);
+setInterval(()=>{if(!document.hidden) carregar()},60000);
 </script>
 </body>
 </html>
