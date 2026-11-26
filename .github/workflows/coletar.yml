@@ -30,4 +30,4 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELEGRAM_ID }}
