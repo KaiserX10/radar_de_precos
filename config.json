@@ -1,0 +1,130 @@
+{
+  "intervalo_minutos": 15,
+  "porta": 8765,
+  "lojas_ativas": [
+    "kabum",
+    "aliexpress"
+  ],
+  "intervalo_minutos_por_loja": {
+    "aliexpress": 30
+  },
+  "suspeito_abaixo_da_mediana": 0.6,
+  "preco_minimo_reais": 700,
+  "telegram": {
+    "token": "",
+    "chat_id": ""
+  },
+  "alertas": {
+    "windows": true,
+    "telegram": true,
+    "novo_menor_preco": true,
+    "queda_minima_reais": 20
+  },
+  "familias": [
+    {
+      "id": "rx-7600",
+      "nome": "RX 7600",
+      "busca": "placa de video rx 7600",
+      "incluir": [
+        "rx\\s*7600"
+      ],
+      "excluir": [
+        "rx\\s*7600\\s*-?xt"
+      ],
+      "memoria": null,
+      "preco_alvo": null
+    },
+    {
+      "id": "rtx-3060ti",
+      "nome": "RTX 3060 Ti",
+      "busca": "placa de video rtx 3060 ti",
+      "incluir": [
+        "rtx\\s*3060\\s*-?ti"
+      ],
+      "excluir": [],
+      "memoria": null,
+      "preco_alvo": null
+    },
+    {
+      "id": "rtx-4060",
+      "nome": "RTX 4060",
+      "busca": "placa de video rtx 4060",
+      "incluir": [
+        "rtx\\s*4060"
+      ],
+      "excluir": [
+        "rtx\\s*4060\\s*-?ti"
+      ],
+      "memoria": null,
+      "preco_alvo": null
+    },
+    {
+      "id": "rtx-4060ti-8",
+      "nome": "RTX 4060 Ti 8GB",
+      "busca": "placa de video rtx 4060 ti",
+      "incluir": [
+        "rtx\\s*4060\\s*-?ti"
+      ],
+      "excluir": [],
+      "memoria": 8,
+      "preco_alvo": null
+    },
+    {
+      "id": "rtx-4060ti-16",
+      "nome": "RTX 4060 Ti 16GB",
+      "busca": "placa de video rtx 4060 ti",
+      "incluir": [
+        "rtx\\s*4060\\s*-?ti"
+      ],
+      "excluir": [],
+      "memoria": 16,
+      "preco_alvo": null
+    },
+    {
+      "id": "rtx-5060",
+      "nome": "RTX 5060",
+      "busca": "placa de video rtx 5060",
+      "incluir": [
+        "rtx\\s*5060"
+      ],
+      "excluir": [
+        "rtx\\s*5060\\s*-?ti"
+      ],
+      "memoria": null,
+      "preco_alvo": null
+    },
+    {
+      "id": "rtx-5060ti-8",
+      "nome": "RTX 5060 Ti 8GB",
+      "busca": "placa de video rtx 5060 ti",
+      "incluir": [
+        "rtx\\s*5060\\s*-?ti"
+      ],
+      "excluir": [],
+      "memoria": 8,
+      "preco_alvo": null
+    },
+    {
+      "id": "rx-9060xt-8",
+      "nome": "RX 9060 XT 8GB",
+      "busca": "placa de video rx 9060 xt",
+      "incluir": [
+        "rx\\s*9060\\s*-?xt"
+      ],
+      "excluir": [],
+      "memoria": 8,
+      "preco_alvo": null
+    },
+    {
+      "id": "rx-9060xt-16",
+      "nome": "RX 9060 XT 16GB",
+      "busca": "placa de video rx 9060 xt",
+      "incluir": [
+        "rx\\s*9060\\s*-?xt"
+      ],
+      "excluir": [],
+      "memoria": 16,
+      "preco_alvo": null
+    }
+  ]
+}

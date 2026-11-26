@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radar de Preços</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0f1115;--card:#171a21;--card2:#1e222b;--bd:#2a2f3a;--tx:#e7e9ee;--mut:#9aa3b2;
+  --ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--acc:#3b82f6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,Segoe UI,Roboto,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--bg);z-index:5}
+h1{font-size:18px;margin:0}
+h2{font-size:15px;margin:0 0 12px}
+main{padding:16px 20px;max-width:1400px;margin:auto}
+.mut{color:var(--mut)}
+button,select,input{background:var(--card2);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit}
+button{cursor:pointer}button:hover{border-color:var(--acc)}
+button.on{background:var(--acc);border-color:var(--acc)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
+.fam{cursor:pointer}.fam.sel{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.fam .preco{font-size:24px;font-weight:700;margin:4px 0}
+.fam .loja{font-size:12px}
+.chips{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-top:8px}
+tr.susp td{opacity:.55}
+.alvo{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;flex-wrap:wrap}
+.alvo label{color:var(--mut)}
+.alvo input{width:110px;padding:4px 8px;font-size:13px}
+.alvo input.salvo{border-color:var(--ok)}.alvo input.erro{border-color:var(--bad)}
+.alvoInfo{font-size:11px}
+.fam.atingido{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
+.chip{background:var(--card2);border-radius:6px;padding:4px 6px;font-size:11px}
+.chip b{display:block;font-size:12px}
+.up{color:var(--bad)}.down{color:var(--ok)}.eq{color:var(--warn)}
+.selo{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;margin-top:6px}
+.selo.bom{background:#14532d;color:#bbf7d0}.selo.ruim{background:#450a0a;color:#fecaca}.selo.neutro{background:#3f3f46;color:#e4e4e7}
+section{margin-top:20px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+#grafico,#dispersao{height:380px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);vertical-align:top}
+th{color:var(--mut);font-weight:500}
+td.num{text-align:right;white-space:nowrap}
+a{color:#93c5fd}
+.vence{color:var(--ok);font-weight:600}
+.duas{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:900px){.duas{grid-template-columns:1fr}}
+.tabwrap{overflow-x:auto}
+.aviso{font-size:12px;color:var(--mut);margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>📡 Radar de Preços — GPUs</h1><div class="mut" id="status">carregando…</div></div>
+  <div class="row" style="margin:0"><button id="btnColetar">Coletar agora</button></div>
+</header>
+<main>
+  <div class="grid" id="cards"></div>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Menor preço ao longo do tempo</h2>
+      <div class="row" id="janelas" style="margin:0"></div>
+    </div>
+    <div class="mut" style="font-size:12px;margin-bottom:6px">Clique nos cards acima para adicionar ou remover GPUs do gráfico.</div>
+    <div id="grafico"></div>
+  </section>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0" id="tituloOfertas">Ofertas atuais</h2>
+      <select id="selOfertas"></select>
+    </div>
+    <div class="tabwrap"><table id="tabOfertas"></table></div>
+  </section>
+
+  <section class="duas">
+    <div class="card">
+      <h2>Comparativo lado a lado</h2>
+      <div class="row"><select id="cmpA"></select><span class="mut">vs</span><select id="cmpB"></select></div>
+      <div class="tabwrap"><table id="tabCmp"></table></div>
+      <div class="aviso" id="notaSpecs"></div>
+    </div>
+    <div class="card">
+      <h2>Preço × desempenho (custo-benefício)</h2>
+      <div id="dispersao"></div>
+      <div class="tabwrap"><table id="tabRank"></table></div>
+    </div>
+  </section>
+
+  <p class="aviso">⚠ Suspeito = preço abaixo de 60% da mediana da família (comum em anúncios falsos ou genéricos); fica fora do menor preço e dos alertas.
+  AliExpress: confira impostos de importação e frete no checkout, pois o preço da busca pode não incluí-los.</p>
+</main>
+
+<script>
+const R = v => v==null ? '—' : v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const PCT = (a,b) => (a==null||b==null) ? null : (a-b)/b*100;
+const JANELAS = [['24h',{horas:24}],['72h',{horas:72}],['7d',{horas:168}],['30d',{horas:720}],['Tudo',{}]];
+const NOMES_MIN = {'24h':'24 horas','7d':'7 dias','30d':'30 dias','inicio':'Desde o início'};
+const LOJA = {kabum:'KaBuM',aliexpress:'AliExpress'};
+const CORES = ['#3b82f6','#22c55e','#f59e0b','#ef4444','#a855f7','#14b8a6','#ec4899','#eab308'];
+let dados=[], selecionadas=new Set(), janela='Tudo';
+const grafico = echarts.init(document.getElementById('grafico'), 'dark');
+const disp = echarts.init(document.getElementById('dispersao'), 'dark');
+addEventListener('resize',()=>{grafico.resize();disp.resize()});
+
+async function api(u,opt){const r=await fetch(u,opt);if(!r.ok)throw new Error(await r.text());return r.json()}
+
+function selo(f){
+  const p=f.melhor?.preco_vista, m=f.minimos;
+  if(!p) return '<span class="selo neutro">sem oferta disponível</span>';
+  if(f.preco_alvo && p<=f.preco_alvo) return '<span class="selo bom">🎯 no preço-alvo</span>';
+  if(m.coletas<2) return '<span class="selo neutro">primeira coleta</span>';
+  if(m.inicio && p<=m.inicio) return '<span class="selo bom">menor preço desde o início</span>';
+  if(m['24h'] && p<=m['24h']*1.02) return '<span class="selo bom">perto do mínimo de 24h</span>';
+  if(m.inicio && p>m.inicio*1.10) return '<span class="selo ruim">10%+ acima do menor já visto</span>';
+  return '<span class="selo neutro">preço comum</span>';
+}
+
+function infoAlvo(f){
+  const p=f.melhor?.preco_vista, a=f.preco_alvo;
+  if(!a||!p) return '';
+  if(p<=a) return '<span class="down">✔ atingido</span>';
+  return `<span class="mut">faltam ${R(p-a)} (${((p-a)/p*100).toFixed(1)}%)</span>`;
+}
+function lerValor(txt){
+  const t=txt.trim().replace(/[R$\s]/g,'');
+  if(!t) return null;
+  const n=parseFloat(t.includes(',')?t.replace(/\./g,'').replace(',','.'):t);
+  return isNaN(n)||n<=0?NaN:n;
+}
+async function salvarAlvo(inp){
+  const v=lerValor(inp.value); inp.classList.remove('salvo','erro');
+  if(Number.isNaN(v)){inp.classList.add('erro');return}
+  const f=dados.find(x=>x.id==inp.dataset.alvo);
+  if((f.preco_alvo??null)===(v==null?null:Math.round(v*100)/100)) return;
+  try{
+    const r=await api('/api/alvo/'+f.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({preco:v})});
+    f.preco_alvo=r.preco_alvo; inp.classList.add('salvo');
+    setTimeout(()=>{cards()},600);
+  }catch(e){inp.classList.add('erro');inp.title=e.message}
+}
+function editandoAlvo(){return document.activeElement?.dataset?.alvo}
+
+function cards(){
+  if(editandoAlvo()) return;
+  document.getElementById('cards').innerHTML = dados.map(f=>{
+    const p=f.melhor?.preco_vista;
+    const chips=Object.keys(NOMES_MIN).map(k=>{
+      const v=f.minimos[k], d=PCT(p,v);
+      const cls=d==null?'':(d>0.5?'up':(d<-0.5?'down':'eq'));
+      return `<div class="chip"><span class="mut">${NOMES_MIN[k]}</span><b>${R(v)}</b><span class="${cls}">${d==null?'':(d>0?'+':'')+d.toFixed(1)+'%'}</span></div>`;
+    }).join('');
+    const atingido=f.preco_alvo&&p&&p<=f.preco_alvo;
+    return `<div class="card fam ${selecionadas.has(f.id)?'sel':''} ${atingido?'atingido':''}" data-id="${f.id}">
+      <div style="display:flex;justify-content:space-between"><b>${f.nome}</b><span class="mut">${f.qtd_ofertas} ofertas</span></div>
+      <div class="preco">${R(p)}</div>
+      <div class="loja mut">${f.melhor?`${LOJA[f.melhor.loja]||f.melhor.loja} · <a href="${f.melhor.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${f.melhor.titulo.slice(0,60)}…</a>`:'—'}</div>
+      ${selo(f)}
+      <div class="mut" style="font-size:12px;margin-top:6px">${Object.keys(LOJA).map(l=>`${LOJA[l]}: <b style="color:var(--tx)">${R(f.menor_por_loja[l])}</b>`).join(' · ')}${f.qtd_suspeitas?` · <span class="eq">⚠ ${f.qtd_suspeitas} suspeita${f.qtd_suspeitas>1?'s':''}</span>`:''}</div>
+      <div class="alvo" onclick="event.stopPropagation()">
+        <label>🎯 Preço-alvo</label>
+        <input type="text" inputmode="decimal" data-alvo="${f.id}" placeholder="sem alvo" value="${f.preco_alvo!=null?f.preco_alvo.toLocaleString('pt-BR',{minimumFractionDigits:2}):''}">
+        <span class="alvoInfo">${infoAlvo(f)}</span>
+      </div>
+      <div class="chips">${chips}</div>
+      <div class="mut" style="font-size:11px;margin-top:6px">mínimos do período · % = preço atual vs. mínimo${f.minimos.desde?' · desde '+new Date(f.minimos.desde).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):''}</div>
+    </div>`}).join('');
+  document.querySelectorAll('[data-alvo]').forEach(inp=>{
+    inp.onkeydown=e=>{if(e.key==='Enter')inp.blur(); if(e.key==='Escape'){inp.value='';inp.blur()}};
+    inp.onblur=()=>salvarAlvo(inp);
+  });
+  document.querySelectorAll('.fam').forEach(el=>el.onclick=()=>{
+    const id=el.dataset.id; selecionadas.has(id)?selecionadas.delete(id):selecionadas.add(id);
+    if(!selecionadas.size) selecionadas.add(id);
+    cards(); desenharGrafico(); document.getElementById('selOfertas').value=id; ofertas();
+  });
+}
+
+function botoesJanela(){
+  document.getElementById('janelas').innerHTML=JANELAS.map(([n])=>`<button class="${n==janela?'on':''}" data-j="${n}">${n}</button>`).join('');
+  document.querySelectorAll('#janelas button').forEach(b=>b.onclick=()=>{janela=b.dataset.j;botoesJanela();desenharGrafico()});
+}
+
+async function desenharGrafico(){
+  const q=new URLSearchParams(JANELAS.find(j=>j[0]==janela)[1]).toString();
+  const ids=[...selecionadas];
+  const series=await Promise.all(ids.map(async(id,i)=>{
+    const f=dados.find(x=>x.id==id); const pts=await api(`/api/serie/${id}?${q}`);
+    const idx=dados.findIndex(x=>x.id==id);
+    return {name:f.nome,type:'line',step:'end',showSymbol:pts.length<40,
+      data:pts.map(p=>[p.x,p.y]),lineStyle:{width:2},color:CORES[idx%CORES.length],
+      markLine: ids.length==1&&f.minimos.inicio?{symbol:'none',data:[{yAxis:f.minimos.inicio,name:'menor'}],
+        label:{formatter:'menor: '+R(f.minimos.inicio)},lineStyle:{type:'dashed',color:'#22c55e'}}:undefined};
+  }));
+  grafico.setOption({backgroundColor:'transparent',tooltip:{trigger:'axis',valueFormatter:R},
+    legend:{top:0},grid:{left:70,right:20,top:36,bottom:40},
+    xAxis:{type:'time'},yAxis:{type:'value',scale:true,axisLabel:{formatter:v=>'R$ '+v.toLocaleString('pt-BR')}},
+    series},true);
+}
+
+async function ofertas(){
+  const id=document.getElementById('selOfertas').value; const f=dados.find(x=>x.id==id);
+  const lst=await api('/api/ofertas/'+id);
+  document.getElementById('tituloOfertas').textContent=`Ofertas atuais — ${f.nome}`;
+  document.getElementById('tabOfertas').innerHTML='<tr><th>Loja</th><th>Produto</th><th>Vendedor</th><th class="num">À vista</th><th class="num">Cheio</th></tr>'+
+    (lst.length?lst.map(o=>`<tr class="${o.suspeito?'susp':''}"><td>${LOJA[o.loja]||o.loja}</td><td>${o.suspeito?'<span class="eq" title="Preço muito abaixo da mediana">⚠ suspeito</span> ':''}<a href="${o.url}" target="_blank" rel="noopener">${o.titulo}</a></td><td class="mut">${o.vendedor||''}</td><td class="num"><b>${R(o.preco_vista)}</b></td><td class="num mut">${R(o.preco_cheio)}</td></tr>`).join('')
+    :'<tr><td colspan="5" class="mut">Nenhuma oferta disponível nas lojas monitoradas.</td></tr>');
+}
+
+const LINHAS=[
+  ['Menor preço agora',f=>f.melhor?.preco_vista,R,'menor'],
+  ['Menor desde o início',f=>f.minimos.inicio,R,'menor'],
+  ['Desempenho (RTX 4060 = 100)',f=>f.specs.desempenho,v=>v,'maior'],
+  ['R$ por ponto de desempenho',f=>f.reais_por_ponto,R,'menor'],
+  ['VRAM',f=>f.specs.vram_gb,v=>v+' GB '+'','maior'],
+  ['Memória',f=>f.specs.tipo_memoria,v=>v,null],
+  ['Barramento',f=>f.specs.barramento_bits,v=>v+' bits','maior'],
+  ['Largura de banda',f=>f.specs.banda_gbs,v=>v+' GB/s','maior'],
+  ['Consumo (TDP)',f=>f.specs.tdp_w,v=>v+' W','menor'],
+  ['PCIe',f=>f.specs.pcie,v=>v,null],
+  ['Upscaling',f=>f.specs.upscaling,v=>v,null],
+  ['Arquitetura',f=>f.specs.arquitetura+' ('+f.specs.lancamento+')',v=>v,null],
+];
+function comparar(){
+  const a=dados.find(x=>x.id==cmpA.value), b=dados.find(x=>x.id==cmpB.value);
+  document.getElementById('tabCmp').innerHTML=`<tr><th></th><th>${a.nome}</th><th>${b.nome}</th></tr>`+
+    LINHAS.map(([n,g,fm,melhor])=>{
+      const va=g(a),vb=g(b); let ca='',cb='';
+      if(melhor&&va!=null&&vb!=null&&va!=vb){const aV=melhor=='menor'?va<vb:va>vb; ca=aV?'vence':''; cb=aV?'':'vence'}
+      return `<tr><td class="mut">${n}</td><td class="${ca}">${va==null?'—':fm(va)}</td><td class="${cb}">${vb==null?'—':fm(vb)}</td></tr>`}).join('')+
+    (a.melhor&&b.melhor?`<tr><td class="mut">Resumo</td><td colspan="2">${resumoCmp(a,b)}</td></tr>`:'');
+}
+function resumoCmp(a,b){
+  const pa=a.melhor.preco_vista,pb=b.melhor.preco_vista,da=a.specs.desempenho,db=b.specs.desempenho;
+  const [r,c]=pa<pb?[a,b]:[b,a]; const dp=(Math.max(pa,pb)/Math.min(pa,pb)-1)*100;
+  const dd=(c.specs.desempenho/r.specs.desempenho-1)*100;
+  return `${c.nome} custa ${dp.toFixed(0)}% a mais que ${r.nome} e entrega ~${dd>=0?dd.toFixed(0)+'% mais':Math.abs(dd).toFixed(0)+'% menos'} desempenho. `+
+    (dd>dp?`<span class="vence">A mais cara compensa no custo-benefício.</span>`:`<span class="vence">A mais barata tem melhor custo-benefício.</span>`);
+}
+
+function dispersao(){
+  const pts=dados.filter(f=>f.melhor&&f.specs.desempenho);
+  disp.setOption({backgroundColor:'transparent',grid:{left:50,right:110,top:24,bottom:50},
+    tooltip:{formatter:p=>`${p.data[2]}<br>${R(p.data[0])} · desempenho ${p.data[1]}`},
+    xAxis:{name:'Menor preço agora',nameLocation:'middle',nameGap:30,scale:true,splitNumber:4,axisLabel:{formatter:v=>'R$ '+(v/1000).toLocaleString('pt-BR')+' mil'}},
+    yAxis:{name:'Desempenho',scale:true,max:v=>v.max+5,min:v=>v.min-5},
+    series:[{type:'scatter',symbolSize:14,data:pts.map(f=>[f.melhor.preco_vista,f.specs.desempenho,f.nome]),
+      itemStyle:{color:p=>CORES[dados.findIndex(x=>x.nome==p.data[2])%CORES.length]},
+      label:{show:true,position:'right',formatter:p=>p.data[2],color:'#cbd5e1',fontSize:11}}]},true);
+  const rank=[...pts].sort((a,b)=>a.reais_por_ponto-b.reais_por_ponto);
+  document.getElementById('tabRank').innerHTML='<tr><th>#</th><th>GPU</th><th class="num">Preço</th><th class="num">R$/ponto</th><th class="num">R$/GB</th></tr>'+
+    rank.map((f,i)=>`<tr><td>${i+1}</td><td>${f.nome}</td><td class="num">${R(f.melhor.preco_vista)}</td><td class="num ${i==0?'vence':''}">${R(f.reais_por_ponto)}</td><td class="num">${R(f.reais_por_gb)}</td></tr>`).join('');
+}
+
+async function status(){
+  const s=await api('/api/status');
+  document.getElementById('status').innerHTML = s.ultima
+    ? `Última coleta: ${new Date(s.ultima).toLocaleString('pt-BR')} · ${s.coletas.map(x=>`${LOJA[x.loja]||x.loja}: ${x.erro?`<span class="up" title="${x.erro.replace(/"/g,'')}">erro</span>`:x.ofertas+' ofertas'}`).join(' · ')} · a cada ${s.intervalo_minutos} min${s.coletando?' · <b>coletando…</b>':''}`
+    : 'Nenhuma coleta ainda — clique em "Coletar agora".';
+}
+
+async function carregar(primeira){
+  dados=await api('/api/resumo');
+  if(primeira){
+    const opts=dados.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
+    ['selOfertas','cmpA','cmpB'].forEach(id=>document.getElementById(id).innerHTML=opts);
+    cmpA.value='rx-7600'; cmpB.value='rtx-3060ti';
+    selecionadas=new Set(dados.filter(f=>f.melhor).slice(0,3).map(f=>f.id));
+    if(!selecionadas.size&&dados[0]) selecionadas.add(dados[0].id);
+    selOfertas.value=[...selecionadas][0]||dados[0].id;
+    document.getElementById('notaSpecs').textContent='Desempenho: índice aproximado em 1080p (reviews públicos). Edite em dados/specs.json.';
+  }
+  cards(); desenharGrafico(); ofertas(); comparar(); dispersao(); status();
+}
+
+btnColetar.onclick=async()=>{btnColetar.disabled=true;btnColetar.textContent='Coletando…';await api('/api/coletar',{method:'POST'});
+  const t=setInterval(async()=>{const s=await api('/api/status');if(!s.coletando){clearInterval(t);btnColetar.disabled=false;btnColetar.textContent='Coletar agora';carregar()}},3000)};
+selOfertas.onchange=ofertas; cmpA.onchange=comparar; cmpB.onchange=comparar;
+botoesJanela(); carregar(true);
+setInterval(()=>carregar(),60000);
+</script>
+</body>
+</html>

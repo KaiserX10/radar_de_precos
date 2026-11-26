@@ -1,0 +1,14 @@
+{
+  "_nota": "Desempenho = índice relativo aproximado em 1080p rasterizado (RTX 4060 = 100), compilado de reviews públicos. Ajuste à vontade; o painel recalcula R$ por ponto de desempenho.",
+  "gpus": {
+    "rx-7600":       {"fabricante": "AMD",    "arquitetura": "RDNA 3",    "lancamento": 2023, "vram_gb": 8,  "tipo_memoria": "GDDR6", "barramento_bits": 128, "banda_gbs": 288, "nucleos": 2048, "tdp_w": 165, "pcie": "4.0 x8",  "upscaling": "FSR 3 (com geração de quadros)",        "desempenho": 96},
+    "rtx-3060ti":    {"fabricante": "NVIDIA", "arquitetura": "Ampere",    "lancamento": 2020, "vram_gb": 8,  "tipo_memoria": "GDDR6", "barramento_bits": 256, "banda_gbs": 448, "nucleos": 4864, "tdp_w": 200, "pcie": "4.0 x16", "upscaling": "DLSS 4 Super Resolution (sem geração de quadros)", "desempenho": 104},
+    "rtx-4060":      {"fabricante": "NVIDIA", "arquitetura": "Ada",       "lancamento": 2023, "vram_gb": 8,  "tipo_memoria": "GDDR6", "barramento_bits": 128, "banda_gbs": 272, "nucleos": 3072, "tdp_w": 115, "pcie": "4.0 x8",  "upscaling": "DLSS 3 (geração de quadros)",           "desempenho": 100},
+    "rtx-4060ti-8":  {"fabricante": "NVIDIA", "arquitetura": "Ada",       "lancamento": 2023, "vram_gb": 8,  "tipo_memoria": "GDDR6", "barramento_bits": 128, "banda_gbs": 288, "nucleos": 4352, "tdp_w": 160, "pcie": "4.0 x8",  "upscaling": "DLSS 3 (geração de quadros)",           "desempenho": 120},
+    "rtx-4060ti-16": {"fabricante": "NVIDIA", "arquitetura": "Ada",       "lancamento": 2023, "vram_gb": 16, "tipo_memoria": "GDDR6", "barramento_bits": 128, "banda_gbs": 288, "nucleos": 4352, "tdp_w": 165, "pcie": "4.0 x8",  "upscaling": "DLSS 3 (geração de quadros)",           "desempenho": 121},
+    "rtx-5060":      {"fabricante": "NVIDIA", "arquitetura": "Blackwell", "lancamento": 2025, "vram_gb": 8,  "tipo_memoria": "GDDR7", "barramento_bits": 128, "banda_gbs": 448, "nucleos": 3840, "tdp_w": 145, "pcie": "5.0 x8",  "upscaling": "DLSS 4 (geração múltipla de quadros)",  "desempenho": 122},
+    "rtx-5060ti-8":  {"fabricante": "NVIDIA", "arquitetura": "Blackwell", "lancamento": 2025, "vram_gb": 8,  "tipo_memoria": "GDDR7", "barramento_bits": 128, "banda_gbs": 448, "nucleos": 4608, "tdp_w": 180, "pcie": "5.0 x8",  "upscaling": "DLSS 4 (geração múltipla de quadros)",  "desempenho": 140},
+    "rx-9060xt-8":   {"fabricante": "AMD",    "arquitetura": "RDNA 4",    "lancamento": 2025, "vram_gb": 8,  "tipo_memoria": "GDDR6", "barramento_bits": 128, "banda_gbs": 320, "nucleos": 2048, "tdp_w": 150, "pcie": "5.0 x16", "upscaling": "FSR 4",                                 "desempenho": 135},
+    "rx-9060xt-16":  {"fabricante": "AMD",    "arquitetura": "RDNA 4",    "lancamento": 2025, "vram_gb": 16, "tipo_memoria": "GDDR6", "barramento_bits": 128, "banda_gbs": 320, "nucleos": 2048, "tdp_w": 160, "pcie": "5.0 x16", "upscaling": "FSR 4",                                 "desempenho": 138}
+  }
+}
