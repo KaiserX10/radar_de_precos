@@ -11,7 +11,12 @@ PAUSA_ENTRE_BUSCAS = 10  # segundos; evita disparar a verificação anti-robô
 
 
 def _baixar(url):
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "pt-BR,pt;q=0.9"})
+    req = urllib.request.Request(url, headers={
+        "User-Agent": UA, "Accept-Language": "pt-BR,pt;q=0.9",
+        # site preference (Brazil / BRL / Portuguese): without it, foreign servers
+        # such as GitHub Actions receive prices in dollars
+        "Cookie": "aep_usuc_f=site=bra&c_tp=BRL&region=BR&b_locale=pt_BR",
+    })
     html = urllib.request.urlopen(req, timeout=40).read().decode("utf-8", "replace")
     i = html.find('"itemList":')
     if i < 0:
@@ -23,12 +28,13 @@ def _baixar(url):
 def buscar(termo):
     termo = termo.replace("placa de video", "").strip()
     slug = urllib.parse.quote(termo.replace(" ", "-"))
-    vistos, saida = set(), []
+    vistos, saida, moedas = set(), [], set()
     for pagina in range(1, MAX_PAGINAS + 1):
         itens = _baixar(f"https://pt.aliexpress.com/w/wholesale-{slug}.html?page={pagina}&shipCountry=br")
         for p in itens:
             pid = p.get("productId")
             preco = ((p.get("prices") or {}).get("salePrice") or {})
+            moedas.add(preco.get("currencyCode"))
             if not pid or pid in vistos or preco.get("currencyCode") != "BRL" or not preco.get("minPrice"):
                 continue
             vistos.add(pid)
@@ -45,5 +51,7 @@ def buscar(termo):
             })
         if not itens:
             break
+    if vistos == set() and moedas - {"BRL", None}:
+        raise RuntimeError(f"AliExpress: prices came in {', '.join(sorted(m for m in moedas if m))}, not in R$")
     time.sleep(PAUSA_ENTRE_BUSCAS)
     return saida
