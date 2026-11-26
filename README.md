@@ -81,3 +81,7 @@ origem de cada item); usados, "99New", seminovos e open box são descartados em 
 
 Para adicionar outra loja, crie um módulo com `buscar(termo)` retornando ofertas no mesmo
 formato e registre em `radar/lojas/__init__.py`. Terabyte, Pichau e Shopee bloqueiam acesso automatizado.
+
+**Pichau, Terabyte, Mercado Livre e Shopee** entram pela extensão do Chrome em `extensao/`
+(veja `extensao/LEIAME.md`): ela captura os preços das páginas que você abre e envia para
+`POST /api/captura` (protegido pela senha do painel). Esses preços valem por 12 h como oferta atual.

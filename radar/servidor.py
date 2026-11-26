@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 
 from pydantic import BaseModel
 
-from . import RAIZ, carregar_config, db, coletor, alertas
+from . import RAIZ, carregar_config, db, coletor, alertas, ingestao
 
 app = FastAPI(title="Radar de Preços")
 
@@ -124,6 +124,30 @@ def definir_alvo(familia: str, alvo: Alvo, x_senha: str | None = Header(None)):
     finally:
         con.close()
     return {"ok": True, "preco_alvo": preco, "atingido": atingido}
+
+
+class Captura(BaseModel):
+    loja: str
+    pagina: str | None = None
+    itens: list[dict]
+
+
+@app.post("/api/captura")
+def receber_captura(c: Captura, x_senha: str | None = Header(None)):
+    """Prices captured by the Chrome extension on pages you opened."""
+    exigir_senha(x_senha)
+    if c.loja not in ingestao.DOMINIOS:
+        raise HTTPException(400, "Loja não suportada")
+    if len(c.itens) > ingestao.MAX_ITENS:
+        raise HTTPException(413, f"Máximo de {ingestao.MAX_ITENS} itens por captura")
+    return {"ok": True, **ingestao.processar(carregar_config(), c.loja, c.itens)}
+
+
+@app.get("/api/buscas")
+def buscas():
+    """Search terms of the monitored families (the extension builds the store URLs from these)."""
+    termos = [f["busca"].replace("placa de video", "").strip() for f in carregar_config()["familias"]]
+    return {"termos": list(dict.fromkeys(termos)), "lojas": list(ingestao.DOMINIOS)}
 
 
 _coleta_manual = threading.Lock()

@@ -172,7 +172,9 @@ h1{font-size:clamp(34px,4.4vw,56px);line-height:.98;letter-spacing:-.045em;font-
 .of-prod{grid-area:prod}.of-preco{grid-area:preco}
 .av{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:16px;flex:none}
 .av-kabum{background:var(--ink);color:#fff}
-.av-aliexpress{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
+.av-aliexpress,.av-shopee{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
+.av-pichau,.av-terabyte{background:var(--ink);color:#fff}
+.av-mercadolivre{background:var(--soft2);color:var(--ink)}
 .lojaNome{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2}
 .vend{display:flex;align-items:center;gap:4px;margin-top:3px;font-size:12px;font-weight:500;min-width:0}
 .vend svg{width:13px;height:13px;flex:none}
@@ -438,7 +440,8 @@ const urlSegura = u => /^https:\/\//i.test(u||'') ? esc(u) : '#';
 const icone = (id, cls='') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
 const JANELAS = [['24h',{horas:24}],['72h',{horas:72}],['7d',{horas:168}],['30d',{horas:720}],['Tudo',{}]];
 const NOMES_MIN = {'24h':'24 horas','7d':'7 dias','30d':'30 dias','inicio':'Desde o início'};
-const LOJA = {kabum:'KaBuM',aliexpress:'AliExpress'};
+const LOJA = {kabum:'KaBuM',aliexpress:'AliExpress',pichau:'Pichau',terabyte:'Terabyte',mercadolivre:'Mercado Livre',shopee:'Shopee'};
+const EXTENSAO = new Set(['pichau','terabyte','mercadolivre','shopee']);  // prices captured by the Chrome extension
 const FILTROS = [['todas','Todas'],['oferta','Com oferta'],['alvo','Com alvo']];
 // paleta monocromática: tom + traço distinguem as séries
 const SERIES = [['#111111','solid'],['#7a7a7a','solid'],['#111111','dashed'],['#b0b0b0','solid'],['#555555','dotted'],['#7a7a7a','dashed'],['#111111','dotted'],['#9a9a9a','dotted'],['#333333','dashed']];
@@ -545,7 +548,7 @@ function cardGpu(f){
   }).join('');
   const atingido=f.preco_alvo&&p&&p<=f.preco_alvo, noGraf=selecionadas.has(f.id);
   // price per store: the cheapest store gets highlighted; stores without an offer are greyed out
-  const lojas=Object.keys(LOJA).map(l=>{
+  const lojas=Object.keys(LOJA).filter(l=>f.menor_por_loja[l]!=null).map(l=>{
     const v=f.menor_por_loja[l], vence=f.melhor&&f.melhor.loja===l;
     return `<span class="lojaChip ${vence?'vence':''} ${v==null?'sem':''}"><i>${LOJA[l]}</i><b class="num">${v==null?'sem oferta':R(v)}</b></span>`;
   }).join('')+(f.qtd_suspeitas?`<span class="tag aviso">⚠ ${f.qtd_suspeitas} suspeita${f.qtd_suspeitas>1?'s':''}</span>`:'');
@@ -659,6 +662,10 @@ function vendedor(o){
   const v=(o.vendedor||'').trim();
   if(o.loja==='kabum') return /^kabum/i.test(v)||!v ? {oficial:true,texto:'Vendido pela KaBuM'} : {oficial:false,texto:'Parceiro: '+v};
   if(o.loja==='aliexpress') return {oficial:false,texto:'Loja parceira · envio do Brasil'};
+  if(o.loja==='pichau'||o.loja==='terabyte') return {oficial:true,texto:'Vendido pela '+nomeLoja(o.loja)};
+  if(o.loja==='mercadolivre') return /^mercado livre$/i.test(v) ? {oficial:true,texto:'Vendido pelo Mercado Livre'}
+    : {oficial:false,texto:v?'Vendedor: '+v:'Vendedor do Mercado Livre'};
+  if(o.loja==='shopee') return {oficial:false,texto:v?'Vendedor: '+v:'Vendedor da Shopee'};
   return {oficial:!v,texto:v||'Vendido pela loja'};
 }
 function linhaOferta(o,melhor){
@@ -684,7 +691,7 @@ function linhaOferta(o,melhor){
     <div class="of-preco">
       <b class="pv num">${R(o.preco_vista)}</b>
       ${desc>=1?`<span class="pc num"><span class="desc">-${desc}%</span><s>${R(o.preco_cheio)}</s></span>`:''}
-      <span class="vista">${o.loja==='kabum'?'à vista no Pix':'preço à vista'}</span>
+      <span class="vista">${EXTENSAO.has(o.loja)?'capturado às '+hora(o.ts):(o.loja==='kabum'?'à vista no Pix':'preço à vista')}</span>
     </div>
   </a>`;
 }

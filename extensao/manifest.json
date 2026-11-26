@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Radar de Preços — Captura",
+  "version": "1.0.0",
+  "description": "Envia ao seu Radar de Preços os preços de placas de vídeo das páginas que você abre na Pichau, Terabyte, Mercado Livre e Shopee.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://radar-de-precos-henna.vercel.app/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.pichau.com.br/*",
+        "https://www.terabyteshop.com.br/*",
+        "https://*.mercadolivre.com.br/*",
+        "https://shopee.com.br/*"
+      ],
+      "js": ["leitores.js", "captura.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": { "default_popup": "popup.html", "default_title": "Radar de Preços" },
+  "icons": { "16": "icones/16.png", "48": "icones/48.png", "128": "icones/128.png" }
+}

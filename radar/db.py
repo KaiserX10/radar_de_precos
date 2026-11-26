@@ -59,6 +59,10 @@ CREATE TABLE IF NOT EXISTS alvos (
 JANELAS = {"24h": 24, "7d": 24 * 7, "30d": 24 * 30, "inicio": None}
 VALIDA = "disponivel=1 AND suspeito=0"
 
+# Stores whose prices arrive through the Chrome extension (captured on pages you open)
+LOJAS_EXTENSAO = ("pichau", "terabyte", "mercadolivre", "shopee")
+EXTENSAO_HORAS = 12  # how long a captured price stays valid as a "current offer"
+
 
 class Conexao:
     """Mesma interface para SQLite e Postgres: SQL com '?' e linhas como dict."""
@@ -205,7 +209,9 @@ def ultima_coleta(con, familia=None):
 
 
 def status(con):
-    ultima = con.um("SELECT MAX(ts) FROM coletas")
+    # "última coleta" = automatic collection; extension captures show up per store in por_loja
+    fora = ",".join("?" * len(LOJAS_EXTENSAO))
+    ultima = con.um(f"SELECT MAX(ts) FROM coletas WHERE loja NOT IN ({fora})", tuple(LOJAS_EXTENSAO))
     linhas = con.todos("SELECT * FROM coletas WHERE ts=?", (ultima,)) if ultima else []
     # última tentativa de cada loja (uma loja pode rodar com intervalo maior)
     por_loja = con.todos(
@@ -215,14 +221,28 @@ def status(con):
 
 
 def ofertas_atuais(con, familia, max_horas=3):
-    """Ofertas da coleta mais recente de cada loja (se uma loja falhar, mantém a anterior
-    por até `max_horas`); as suspeitas vêm por último."""
-    return con.todos(
+    """Current offers; the suspicious ones come last.
+
+    Automatic stores: the most recent collection of each store (if a store fails, keeps the
+    previous one for up to `max_horas`).
+    Extension stores (Pichau, Terabyte...): each page is captured separately, so the
+    most recent price of each product within EXTENSAO_HORAS is used."""
+    fora = ",".join("?" * len(LOJAS_EXTENSAO))
+    lotes = con.todos(
         "SELECT p.* FROM precos p JOIN ("
-        "  SELECT loja, MAX(ts) ts FROM precos WHERE familia=? AND ts>=? GROUP BY loja"
+        f"  SELECT loja, MAX(ts) ts FROM precos WHERE familia=? AND ts>=? AND loja NOT IN ({fora}) GROUP BY loja"
         ") u ON p.loja=u.loja AND p.ts=u.ts"
-        " WHERE p.familia=? AND p.disponivel=1 ORDER BY p.suspeito, p.preco_vista",
-        (familia, _corte(max_horas), familia))
+        " WHERE p.familia=? AND p.disponivel=1",
+        (familia, _corte(max_horas), *LOJAS_EXTENSAO, familia))
+    dentro = ",".join("?" * len(LOJAS_EXTENSAO))
+    capturas = con.todos(
+        f"SELECT * FROM precos WHERE familia=? AND ts>=? AND loja IN ({dentro}) ORDER BY ts DESC",
+        (familia, _corte(EXTENSAO_HORAS), *LOJAS_EXTENSAO))
+    ultimas = {}
+    for r in capturas:  # first occurrence = most recent capture of that product
+        ultimas.setdefault((r["loja"], r["sku"]), r)
+    todas = lotes + [r for r in ultimas.values() if r["disponivel"]]
+    return sorted(todas, key=lambda r: (r["suspeito"], r["preco_vista"]))
 
 
 def serie(con, familia, horas=None):

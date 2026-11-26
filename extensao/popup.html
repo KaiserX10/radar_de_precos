@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Radar de Preços</title>
+<style>
+  :root{--ink:#111;--ink2:#2a2a2a;--mut:#6b6b6b;--soft:#f2f2f1;--line:rgba(17,17,17,.08);--ok:#1d8f4e;--ok-bg:#e3f3e9;--bad:#c93b3b;--bad-bg:#f8e5e5}
+  *{box-sizing:border-box}
+  body{margin:0;width:340px;font:13px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:linear-gradient(160deg,#f6f6f5,#e9e9e7)}
+  main{padding:16px;display:flex;flex-direction:column;gap:12px}
+  h1{margin:0;font-size:22px;letter-spacing:-.03em;line-height:1.05;font-weight:600}
+  .sub{color:var(--mut);font-size:12px;margin-top:4px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}
+  h2{margin:0 0 10px;font-size:13px;font-weight:600}
+  label.campo{display:block;font-size:11.5px;color:var(--mut);margin:8px 0 4px}
+  input[type=text],input[type=password],input[type=url]{width:100%;height:38px;border:1px solid #e3e3e2;border-radius:10px;padding:0 12px;font:inherit;font-size:13px}
+  .linhas{display:flex;flex-direction:column}
+  .loja{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+  .loja:first-child{border-top:0;padding-top:0}
+  .av{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none;background:var(--ink);color:#fff}
+  .av.claro{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
+  .av.cinza{background:#e9e9e8;color:var(--ink)}
+  .info{flex:1;min-width:0}
+  .info b{display:block;font-size:13px}
+  .info span{font-size:11.5px;color:var(--mut)}
+  .info span.ok{color:var(--ok)}.info span.erro{color:var(--bad)}
+  .chave{position:relative;width:38px;height:22px;flex:none}
+  .chave input{opacity:0;width:0;height:0}
+  .chave i{position:absolute;inset:0;border-radius:999px;background:#d6d6d5;transition:.15s;cursor:pointer}
+  .chave i::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+  .chave input:checked+i{background:var(--ink)}
+  .chave input:checked+i::after{transform:translateX(16px)}
+  .chave input:focus-visible+i{outline:2px solid var(--ink);outline-offset:2px}
+  button{font:inherit;cursor:pointer}
+  .btn{height:40px;border-radius:999px;border:1px solid #e3e3e2;background:#fff;padding:0 16px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .btn.preto{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .btn:disabled{opacity:.5;cursor:wait}
+  .acoes{display:flex;gap:8px;margin-top:12px}
+  .acoes .btn{flex:1}
+  .marcas{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px}
+  .marcas label{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;background:var(--soft);font-size:12px;cursor:pointer}
+  .marcas input{accent-color:#111}
+  .msg{font-size:12px;min-height:16px;margin-top:8px}
+  .msg.ok{color:var(--ok)}.msg.erro{color:var(--bad)}
+  .nota{font-size:11.5px;color:var(--mut);margin:6px 0 0}
+  .opcao{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;margin-top:10px}
+  a{color:var(--ink)}
+  footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:0 2px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Radar de<br>Preços</h1>
+    <div class="sub">Captura os preços das páginas que você abre.</div>
+  </header>
+
+  <section class="card" aria-labelledby="tLojas">
+    <h2 id="tLojas">Lojas</h2>
+    <div class="linhas" id="lojas"></div>
+  </section>
+
+  <section class="card" aria-labelledby="tBuscas">
+    <h2 id="tBuscas">Abrir minhas buscas</h2>
+    <div class="marcas" id="marcas"></div>
+    <p class="nota">Abre as buscas das suas GPUs em abas, uma a cada 4 s. Os preços são enviados sozinhos.</p>
+    <div class="opcao"><span>Fechar as abas depois de capturar</span>
+      <label class="chave"><input type="checkbox" id="fecharAbas"><i></i><span hidden>Fechar abas</span></label></div>
+    <div class="acoes"><button class="btn preto" id="abrir">Abrir buscas</button></div>
+    <div class="msg" id="msgBuscas" role="status"></div>
+  </section>
+
+  <section class="card" aria-labelledby="tCon">
+    <h2 id="tCon">Conexão com o Radar</h2>
+    <label class="campo" for="api">Endereço do painel</label>
+    <input type="url" id="api" placeholder="https://…vercel.app" autocomplete="off">
+    <label class="campo" for="senha">Senha do painel</label>
+    <input type="password" id="senha" placeholder="a mesma do painel" autocomplete="off">
+    <div class="opcao"><span>Mostrar aviso na página da loja</span>
+      <label class="chave"><input type="checkbox" id="aviso"><i></i><span hidden>Aviso</span></label></div>
+    <div class="acoes"><button class="btn" id="testar">Testar</button><button class="btn preto" id="salvar">Salvar</button></div>
+    <div class="msg" id="msgCon" role="status"></div>
+  </section>
+
+  <footer><a href="#" id="painel">Abrir painel ↗</a><span style="color:var(--mut)">v1.0</span></footer>
+</main>
+<script src="popup.js"></script>
+</body>
+</html>
