@@ -15,7 +15,7 @@
   --bg1:#f4f4f3;--bg2:#e2e2e0;
   --glass:rgba(255,255,255,.58);--glass-strong:rgba(255,255,255,.86);--glass-line:rgba(255,255,255,.9);
   --line:rgba(17,17,17,.07);--soft:#f2f2f1;--soft2:#e9e9e8;
-  --ink:#111111;--ink2:#2a2a2a;--mut:#8a8a8a;--mut2:#b4b4b4;
+  --ink:#111111;--ink2:#2a2a2a;--mut:#6b6b6b;--mut2:#b4b4b4;
   --ok:#1d8f4e;--ok-bg:#e3f3e9;--bad:#c93b3b;--bad-bg:#f8e5e5;--warn:#a26a00;--warn-bg:#f6edda;
   --r-xl:30px;--r-l:22px;--r-m:16px;--r-s:12px;
   --shadow:0 18px 40px -18px rgba(0,0,0,.14),0 2px 6px rgba(0,0,0,.03);
@@ -121,11 +121,20 @@ h1{font-size:clamp(34px,4.4vw,56px);line-height:.98;letter-spacing:-.045em;font-
 .tag svg{width:13px;height:13px;flex:none}
 .tag.bom{background:var(--ink);color:#fff}.tag.ruim{background:var(--bad-bg);color:var(--bad)}.tag.aviso{background:var(--warn-bg);color:var(--warn)}
 .preco{font-size:30px;font-weight:600;letter-spacing:-.035em;line-height:1}
-.oferta{font-size:12px;color:var(--mut);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.9em}
+.oferta{font-size:12px;color:var(--mut);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.9em;line-height:1.45}
 .oferta a{color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--soft2)}
 .oferta a:hover{border-color:var(--ink)}
-.lojas{display:flex;gap:6px;flex-wrap:wrap;font-size:12px}
-.lojas span{background:var(--soft);border-radius:8px;padding:3px 8px}
+.onde{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--ink2)}
+.onde b{color:var(--ink);font-weight:600}
+.av.mini{width:22px;height:22px;border-radius:7px;font-size:11px}
+.lojas{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lojaChip{display:flex;flex-direction:column;gap:1px;border-radius:10px;padding:7px 10px;background:var(--soft);font-size:13px}
+.lojaChip i{font-style:normal;font-size:11px;font-weight:500;color:var(--mut)}
+.lojaChip b{font-weight:600}
+.lojaChip.vence{background:var(--ink);color:#fff}
+.lojaChip.vence i{color:#bdbdbd}
+.lojaChip.sem b{font-weight:500;color:var(--mut)}
+.lojas .tag{grid-column:1 / -1;justify-self:start}
 .alvo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--soft);border-radius:var(--r-s);padding:6px 6px 6px 10px}
 .alvo label{font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px}
 .alvo label svg{width:14px;height:14px}
@@ -148,14 +157,41 @@ h1{font-size:clamp(34px,4.4vw,56px);line-height:.98;letter-spacing:-.045em;font-
 #dispersao{height:300px}
 
 /* ---------- offers ---------- */
-.ofertas{display:flex;flex-direction:column}
-.of{display:grid;grid-template-columns:110px minmax(0,1fr) 160px 120px 110px;gap:14px;align-items:center;padding:12px 4px;border-top:1px solid var(--line)}
-.of.cab{border-top:0;font-size:11.5px;color:var(--mut);padding-top:0}
-.of .tit{min-width:0}
-.of .tit a{text-decoration:none;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.of .tit a:hover{text-decoration:underline}
-.of .r{text-align:right}
-.of.susp{opacity:.55}
+.ofertas{display:flex;flex-direction:column;gap:8px}
+/* each offer is an entirely tappable card: store | product | price */
+.of{display:grid;grid-template-columns:230px minmax(0,1fr) 190px;grid-template-areas:"loja prod preco" "vend prod preco";
+  column-gap:20px;row-gap:2px;align-items:center;padding:14px 16px;
+  background:#fff;border:1px solid var(--line);border-radius:var(--r-m);text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s}
+.of:hover{border-color:#cfcfcf;box-shadow:0 8px 20px -14px rgba(0,0,0,.25)}
+.of.melhor{border:1.5px solid var(--ink)}
+.of.susp{opacity:.6}
+.of-loja{grid-area:loja;display:flex;align-items:center;gap:10px;min-width:0;align-self:end}
+.of-vend{grid-area:vend;align-self:start;margin:0 0 0 50px;align-items:flex-start}
+.of-vend svg{margin-top:2px}
+.of .of-vend span{white-space:normal;overflow:visible;line-height:1.3}
+.of-prod{grid-area:prod}.of-preco{grid-area:preco}
+.av{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:16px;flex:none}
+.av-kabum{background:var(--ink);color:#fff}
+.av-aliexpress{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
+.lojaNome{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2}
+.vend{display:flex;align-items:center;gap:4px;margin-top:3px;font-size:12px;font-weight:500;min-width:0}
+.vend svg{width:13px;height:13px;flex:none}
+.vend span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vend.ok{color:var(--ok)}
+.vend.mkt{color:var(--warn)}
+.of-prod{min-width:0}
+.of-prod .tit{font-size:13.5px;line-height:1.4;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.of-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag.melhor{background:var(--ink);color:#fff}
+.tag.delta{background:var(--soft);color:var(--ink2)}
+.cta{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap}
+.cta svg{width:14px;height:14px}
+.of:hover .cta{text-decoration:underline}
+.of-preco{display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right}
+.pv{font-size:23px;font-weight:700;letter-spacing:-.025em;line-height:1}
+.pc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut)}
+.desc{background:var(--ok-bg);color:var(--ok);font-weight:700;border-radius:6px;padding:2px 6px;font-size:11.5px}
+.vista{font-size:11px;color:var(--mut)}
 select.pillSel{height:40px;border-radius:999px;border:1px solid var(--glass-line);background:#fff;padding:0 34px 0 14px;font-size:14px;font-weight:500;appearance:none;-webkit-appearance:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 12px center;max-width:100%}
@@ -202,8 +238,7 @@ dialog .acoes button.preto{background:var(--ink);color:#fff;border-color:var(--i
 @media (max-width:1180px){
   .kpis{grid-template-columns:1fr 1fr}
   .kpis .destaque{grid-column:1 / -1;order:-1}
-  .of{grid-template-columns:96px minmax(0,1fr) 120px 110px}
-  .of .vend{display:none}
+  .of{grid-template-columns:200px minmax(0,1fr) 170px;gap:16px}
 }
 @media (max-width:1023px){
   .shell{grid-template-columns:minmax(0,1fr);margin:0;border-radius:0;border:0;box-shadow:none;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;
@@ -233,11 +268,14 @@ dialog .acoes button.preto{background:var(--ink);color:#fff;border-color:var(--i
   #dispersao{height:260px}
   .secHead .seg{width:100%;overflow-x:auto}
   .secHead .seg button{flex:1}
-  .of,.of .vend{display:grid}
-  .of{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"loja preco" "tit tit" "vend cheio";gap:6px 12px;padding:14px 2px}
-  .of.cab{display:none}
-  .of .lj{grid-area:loja}.of .tit{grid-area:tit}.of .vend{grid-area:vend;font-size:12px}
-  .of .pv{grid-area:preco}.of .pc{grid-area:cheio}
+  /* store + price at the top; seller on its own full-width line (never cut off); product below */
+  .of{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"loja preco" "vend vend" "prod prod";gap:8px 10px;padding:14px}
+  .of-loja{align-self:start}
+  .of-vend{margin:0;padding:8px 10px;border-radius:10px;background:var(--soft)}
+  .of-vend.ok{background:var(--ok-bg)}.of-vend.mkt{background:var(--warn-bg)}
+  .of-vend span{white-space:normal}
+  .of-prod{padding-top:4px}
+  .pv{font-size:21px}
   .cmpLinha{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 12px}
   .cmpLinha .rot{grid-column:1 / -1;color:#8d8d8d;font-size:11.5px}
   .cmpLinha.cab .rot{display:none}
@@ -260,7 +298,8 @@ dialog .acoes button.preto{background:var(--ink);color:#fff;border-color:var(--i
     <symbol id="i-store" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 5 4h14l2 5"/><path d="M4 9v11h16V9"/><path d="M3 9h18"/></symbol>
     <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></symbol>
-    <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="i-list"viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
   </defs>
 </svg>
 
@@ -338,7 +377,7 @@ dialog .acoes button.preto{background:var(--ink);color:#fff;border-color:var(--i
 
     <section class="sec glass" id="ofertas" aria-labelledby="tituloOfertas">
       <div class="secHead">
-        <h2 id="tituloOfertas">Ofertas atuais</h2>
+        <div><h2 id="tituloOfertas">Ofertas atuais</h2><p class="mut" id="resumoOfertas"></p></div>
         <label><span class="sr">Escolher GPU</span><select id="selOfertas" class="pillSel"></select></label>
       </div>
       <div class="ofertas" id="tabOfertas"></div>
@@ -505,12 +544,23 @@ function cardGpu(f){
     return `<div class="chip"><span class="mut">${NOMES_MIN[k]}</span><b class="num">${R(v)}</b><span class="${cls} num">${d==null?'&nbsp;':(d>0?'+':'')+d.toFixed(1)+'%'}</span></div>`;
   }).join('');
   const atingido=f.preco_alvo&&p&&p<=f.preco_alvo, noGraf=selecionadas.has(f.id);
-  const lojas=Object.keys(LOJA).map(l=>`<span>${LOJA[l]} <b class="num">${R(f.menor_por_loja[l])}</b></span>`).join('')
-    +(f.qtd_suspeitas?`<span class="tag aviso">⚠ ${f.qtd_suspeitas} suspeita${f.qtd_suspeitas>1?'s':''}</span>`:'');
+  // price per store: the cheapest store gets highlighted; stores without an offer are greyed out
+  const lojas=Object.keys(LOJA).map(l=>{
+    const v=f.menor_por_loja[l], vence=f.melhor&&f.melhor.loja===l;
+    return `<span class="lojaChip ${vence?'vence':''} ${v==null?'sem':''}"><i>${LOJA[l]}</i><b class="num">${v==null?'sem oferta':R(v)}</b></span>`;
+  }).join('')+(f.qtd_suspeitas?`<span class="tag aviso">⚠ ${f.qtd_suspeitas} suspeita${f.qtd_suspeitas>1?'s':''}</span>`:'');
+  const vd=f.melhor?vendedor(f.melhor):null;
   return `<article class="gpu ${noGraf?'noGrafico':''} ${atingido?'atingido':''}" aria-label="${esc(f.nome)}">
     <div class="gpuTop"><b>${esc(f.nome)}</b><span class="tag">${f.qtd_ofertas} oferta${f.qtd_ofertas==1?'':'s'}</span></div>
-    <div class="preco num">${R(p)}</div>
-    <div class="oferta">${f.melhor?`${esc(LOJA[f.melhor.loja]||f.melhor.loja)} · <a href="${urlSegura(f.melhor.url)}" target="_blank" rel="noopener noreferrer">${esc(f.melhor.titulo)}</a>`:'Nenhuma oferta nas lojas monitoradas.'}</div>
+    <div>
+      <div class="preco num">${R(p)}</div>
+      ${f.melhor?`<div class="onde">
+        <span class="av mini av-${esc(f.melhor.loja)}" aria-hidden="true">${esc(nomeLoja(f.melhor.loja).charAt(0))}</span>
+        <span>na <b>${esc(nomeLoja(f.melhor.loja))}</b></span>
+        <span class="vend ${vd.oficial?'ok':'mkt'}" style="margin:0">${vd.oficial?icone('check'):icone('store')}<span>${esc(vd.oficial?'oficial':vd.texto.replace(/^Parceiro: /,'parceiro: '))}</span></span>
+      </div>`:''}
+    </div>
+    <div class="oferta">${f.melhor?`<a href="${urlSegura(f.melhor.url)}" target="_blank" rel="noopener noreferrer">${esc(f.melhor.titulo)}</a>`:'Nenhuma oferta nas lojas monitoradas.'}</div>
     <div>${selo(f)}</div>
     <div class="lojas">${lojas}</div>
     <div class="alvo">
@@ -596,16 +646,47 @@ async function ofertas(){
   const id=$('selOfertas').value; const f=dados.find(x=>x.id==id); if(!f) return;
   $('tituloOfertas').textContent=`Ofertas atuais — ${f.nome}`;
   let lst; try{lst=await api('/api/ofertas/'+id)}catch(e){$('tabOfertas').innerHTML='<div class="vazio">Não foi possível carregar as ofertas.</div>';return}
-  $('tabOfertas').innerHTML = lst.length ?
-    '<div class="of cab"><span>Loja</span><span>Produto</span><span class="vend">Vendedor</span><span class="r">À vista</span><span class="r">Cheio</span></div>'+
-    lst.map(o=>`<div class="of ${o.suspeito?'susp':''}">
-      <span class="lj"><span class="tag">${esc(LOJA[o.loja]||o.loja)}</span></span>
-      <span class="tit">${o.suspeito?'<span class="tag aviso" title="Preço muito abaixo da mediana">⚠ suspeito</span> ':''}<a href="${urlSegura(o.url)}" target="_blank" rel="noopener noreferrer">${esc(o.titulo)}</a></span>
-      <span class="vend mut">${esc(o.vendedor||'')}</span>
-      <b class="pv r num">${R(o.preco_vista)}</b>
-      <span class="pc r mut num">${o.preco_cheio&&o.preco_cheio>o.preco_vista?'<s>'+R(o.preco_cheio)+'</s>':''}</span>
-    </div>`).join('')
+  const melhor=lst.find(o=>!o.suspeito);
+  $('resumoOfertas').innerHTML = melhor
+    ? `${lst.length} oferta${lst.length==1?'':'s'} · menor preço <b style="color:var(--ink)">${R(melhor.preco_vista)}</b> na <b style="color:var(--ink)">${esc(nomeLoja(melhor.loja))}</b>`
+    : '';
+  $('tabOfertas').innerHTML = lst.length ? lst.map(o=>linhaOferta(o,melhor)).join('')
     : '<div class="vazio">Nenhuma oferta disponível nas lojas monitoradas.</div>';
+}
+const nomeLoja = l => LOJA[l]||l;
+// Who actually sells: the store itself (warranty/shipping from the store) or a marketplace partner
+function vendedor(o){
+  const v=(o.vendedor||'').trim();
+  if(o.loja==='kabum') return /^kabum/i.test(v)||!v ? {oficial:true,texto:'Vendido pela KaBuM'} : {oficial:false,texto:'Parceiro: '+v};
+  if(o.loja==='aliexpress') return {oficial:false,texto:'Loja parceira · envio do Brasil'};
+  return {oficial:!v,texto:v||'Vendido pela loja'};
+}
+function linhaOferta(o,melhor){
+  const vd=vendedor(o), eMelhor=melhor&&o===melhor;
+  const desc=o.preco_cheio&&o.preco_cheio>o.preco_vista ? Math.round((1-o.preco_vista/o.preco_cheio)*100) : 0;
+  const delta=melhor&&!eMelhor&&!o.suspeito ? o.preco_vista-melhor.preco_vista : null;
+  const tags=[
+    eMelhor?'<span class="tag melhor">Menor preço</span>':'',
+    delta!=null&&delta>0.009?`<span class="tag delta num">+${R(delta)} (+${(delta/melhor.preco_vista*100).toFixed(1)}%)</span>`:'',
+    o.suspeito?'<span class="tag aviso">⚠ suspeito</span>':'',
+  ].join('');
+  return `<a class="of ${eMelhor?'melhor':''} ${o.suspeito?'susp':''}" href="${urlSegura(o.url)}" target="_blank" rel="noopener noreferrer"
+      aria-label="${esc(nomeLoja(o.loja))}, ${esc(R(o.preco_vista))}: ${esc(o.titulo)} (abre a loja)">
+    <div class="of-loja">
+      <span class="av av-${esc(o.loja)}" aria-hidden="true">${esc(nomeLoja(o.loja).charAt(0))}</span>
+      <b class="lojaNome">${esc(nomeLoja(o.loja))}</b>
+    </div>
+    <span class="vend of-vend ${vd.oficial?'ok':'mkt'}">${vd.oficial?icone('check'):icone('store')}<span>${esc(vd.texto)}</span></span>
+    <div class="of-prod">
+      <span class="tit">${esc(o.titulo)}</span>
+      <div class="of-tags">${tags}<span class="cta">Ver na loja${icone('arrow')}</span></div>
+    </div>
+    <div class="of-preco">
+      <b class="pv num">${R(o.preco_vista)}</b>
+      ${desc>=1?`<span class="pc num"><span class="desc">-${desc}%</span><s>${R(o.preco_cheio)}</s></span>`:''}
+      <span class="vista">${o.loja==='kabum'?'à vista no Pix':'preço à vista'}</span>
+    </div>
+  </a>`;
 }
 
 /* ---------- comparativo ---------- */
