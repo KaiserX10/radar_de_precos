@@ -76,7 +76,8 @@ RTX 4060 = 100). O painel calcula R$ por ponto de desempenho e R$ por GB de VRAM
 
 KaBuM (a cada 15 min) e AliExpress (a cada 30 min, com pausa entre buscas para não cair na
 verificação anti-robô). Se uma loja falhar, o painel mantém as ofertas anteriores dela por até 3h.
-AliExpress: o preço da busca pode não incluir impostos de importação e frete; confira no checkout.
+AliExpress: só entram produtos com envio do Brasil (filtro "Do Brasil" na busca e conferência do país de
+origem de cada item); usados, "99New", seminovos e open box são descartados em todas as lojas.
 
 Para adicionar outra loja, crie um módulo com `buscar(termo)` retornando ofertas no mesmo
 formato e registre em `radar/lojas/__init__.py`. Terabyte, Pichau e Shopee bloqueiam acesso automatizado.

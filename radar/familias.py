@@ -9,7 +9,8 @@ EXCLUIR_GERAL = [
     r"all[\s-]?in[\s-]?one", r"desktop", r"workstation", r"cooler para", r"suporte",
     r"water\s*block", r"backplate", r"compativel", r"\bcabo\b", r"riser", r"\bcapa\b",
     r"^ventilador", r"^ventoinha", r"^novo ventilador", r"dissipador", r"bracket", r"^substitui",
-    r"segunda mao", r"refurbish", r"minera",
+    r"segunda mao", r"refurbish", r"minera", r"\b99\s*new\b", r"seminov", r"\bused\b",
+    r"\bopen\s*box\b", r"de vitrine", r"mostruario",
 ]
 
 MEMORIA = re.compile(r"(?<!\d)(\d{1,2})\s*g(?:b|ddr|\b)")
