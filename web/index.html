@@ -58,7 +58,7 @@ button{cursor:pointer}
 .lojaLinha{display:flex;align-items:center;justify-content:space-between;font-size:12px}
 .lojaLinha span:first-child{display:flex;align-items:center;gap:8px}
 .bolinha{width:8px;height:8px;border-radius:50%;background:var(--ink)}
-.bolinha.erro{background:var(--bad)}.bolinha.vazio{background:var(--mut2)}
+.bolinha.erro{background:var(--bad)}.bolinha.apagada{background:var(--mut2)}
 
 /* ---------- header ---------- */
 .main{min-width:0;display:flex;flex-direction:column;gap:var(--gutter)}
@@ -533,7 +533,7 @@ function kpis(){
   const validas=dados.reduce((s,f)=>s+f.qtd_ofertas,0);
   $('kpiOfertas').textContent=validas.toLocaleString('pt-BR');
   const porLoja={}; dados.forEach(f=>Object.keys(f.menor_por_loja||{}).forEach(l=>porLoja[l]=(porLoja[l]||0)+1));
-  $('kpiLojas').innerHTML=Object.keys(LOJA).map(l=>`<li><span><i class="bolinha ${porLoja[l]?'':'vazio'}"></i>${LOJA[l]}</span><span class="num">${porLoja[l]||0} de ${dados.length} GPUs</span></li>`).join('');
+  $('kpiLojas').innerHTML=Object.keys(LOJA).map(l=>`<li><span><i class="bolinha ${porLoja[l]?'':'apagada'}"></i>${LOJA[l]}</span><span class="num">${porLoja[l]||0} de ${dados.length} GPUs</span></li>`).join('');
 
   const melhor=dados.filter(f=>f.melhor&&f.reais_por_ponto).sort((a,b)=>a.reais_por_ponto-b.reais_por_ponto)[0];
   $('kpiMelhor').innerHTML = melhor ? `
@@ -552,7 +552,7 @@ function kpis(){
   $('kpiAlvos').innerHTML=comAlvo.length?`${noAlvo.length}<small class="mut"> / ${comAlvo.length}</small>`:'0';
   $('kpiAlvosSub').textContent=comAlvo.length?'GPUs no preço-alvo':'Nenhum alvo definido — use 🎯 nos cards';
   const perto=comAlvo.filter(f=>f.melhor).map(f=>({f,d:(f.melhor.preco_vista-f.preco_alvo)/f.melhor.preco_vista*100})).sort((a,b)=>a.d-b.d).slice(0,3);
-  $('kpiAlvoLista').innerHTML=perto.map(({f,d})=>`<li><span><i class="bolinha ${d<=0?'':'vazio'}"></i><span class="nome">${esc(f.nome)}</span></span><span class="num ${d<=0?'down':'mut'}">${d<=0?'no alvo':'faltam '+d.toFixed(1)+'%'}</span></li>`).join('');
+  $('kpiAlvoLista').innerHTML=perto.map(({f,d})=>`<li><span><i class="bolinha ${d<=0?'':'apagada'}"></i><span class="nome">${esc(f.nome)}</span></span><span class="num ${d<=0?'down':'mut'}">${d<=0?'no alvo':'faltam '+d.toFixed(1)+'%'}</span></li>`).join('');
 }
 
 /* ---------- gráfico de preço ---------- */
@@ -666,7 +666,7 @@ async function status(){
   if(!s.ultima){$('stHora').textContent='--:--';$('pillLojas').textContent='Nenhuma coleta ainda';$('tagStatus').textContent='Nenhuma coleta ainda';return}
   $('stHora').textContent=hora(s.ultima);
   $('stDia').textContent=new Date(s.ultima).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'});
-  $('stLojas').innerHTML=s.por_loja.map(x=>`<div class="lojaLinha"><span><i class="bolinha ${x.erro?'erro':(x.ofertas?'':'vazio')}"></i>${esc(LOJA[x.loja]||x.loja)}</span>
+  $('stLojas').innerHTML=s.por_loja.map(x=>`<div class="lojaLinha"><span><i class="bolinha ${x.erro?'erro':(x.ofertas?'':'apagada')}"></i>${esc(LOJA[x.loja]||x.loja)}</span>
     <span class="${x.erro?'up':'mut'} num" ${x.erro?`title="${esc(x.erro)}"`:''}>${x.erro?'erro':x.ofertas+' · '+hora(x.ts)}</span></div>`).join('');
   $('stModo').textContent=`a cada ~${s.intervalo_minutos} min${s.nuvem?' · GitHub Actions':' · local'}`;
   const resumo=s.por_loja.map(x=>`${LOJA[x.loja]||x.loja} ${x.erro?'erro':x.ofertas}`).join(' · ');
