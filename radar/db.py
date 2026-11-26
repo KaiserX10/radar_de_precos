@@ -8,7 +8,18 @@ from . import RAIZ
 
 ARQUIVO = RAIZ / "dados" / "radar.db"
 FUSO = timezone(timedelta(hours=-3))  # horário de Brasília (sem horário de verão)
-URL = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
+def _limpar_url(valor):
+    """Accepts the value pasted as an entire .env line: DATABASE_URL="postgresql://..."."""
+    if not valor:
+        return None
+    valor = valor.strip()
+    antes = valor.split("://", 1)[0]
+    if "=" in antes:  # removes the 'NAME=' prefix (the '=' in ?sslmode=... comes after '://')
+        valor = valor.split("=", 1)[1].strip()
+    return valor.strip('"').strip("'").strip() or None
+
+
+URL = _limpar_url(os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL"))
 PG = bool(URL)
 
 ESQUEMA = """
